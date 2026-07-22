@@ -1,0 +1,2131 @@
+---
+title: "How water investment in reproduction changes within wild California poppies (*Eschscholzia californica*)"
+author: "**Student**: Shea Nolan, **PI**: Dr. Kevin Simonin"
+output:
+  html_document: default
+---
+
+```{r Load Packages and Define Functions, include=FALSE}
+library(tidyverse)
+library(rstatix)
+library(car)
+library(dplyr)
+library(lubridate)
+library(glue)
+library(lme4)
+library(lmerTest)
+library(merTools)
+library(emmeans)
+library(plotly)
+library(patchwork)
+library(ggtext)
+library(rsq)
+library(performance)
+library(spaMM)
+library(VGAM)
+library(glmmTMB)
+
+# a function that accepts a log-log linear model, the data frame associated with the model, and a character string for the predicted variable name. Outputs the dataframe with predicted columns.
+log_predict = function(lm, df, y) {
+  
+# call the predict function with the log-log model, and log transformed x values.
+log_predicted = predict.lm(lm, df, interval = 'confidence')
+df = cbind(df, log_predicted)
+
+# make a new column that takes the anti log of the predicted values and confidence intervals
+df$fit2 = 10^(df$fit)
+df$lwr2 = 10^(df$lwr)
+df$upr2 = 10^(df$upr)
+
+names(df)[names(df) == 'fit'] <- glue('log_{y}_fit')
+names(df)[names(df) == 'lwr'] <- glue('log_{y}_lwr')
+names(df)[names(df) == 'upr'] <- glue('log_{y}_upr')
+
+names(df)[names(df) == 'fit2'] <- glue('{y}_fit')
+names(df)[names(df) == 'lwr2'] <- glue('{y}_lwr')
+names(df)[names(df) == 'upr2'] <- glue('{y}_upr')
+
+return(df)
+}
+
+# defining a VPD function using the Arden Buck equation
+vpd = function(RH, Temp) {
+  output = (1 - (RH/100)) * (0.61121 * exp((17.502*Temp)/(240.97+Temp)))
+  return(output)
+}
+
+# defining an evaporation function. Includes unit conversions: VPD as a ratio of 1 standard atmosphere (in kPa), moles per meter squared to millimoles per meter squared, and cm squared to meters squared (conversion factor is 0.01^2).
+evaporation = function(gsw, surface_area, VPD) {
+  output = (VPD/101.325) * (gsw * 1000) * (surface_area * 0.0001)
+  return(output)
+}
+
+# defining a function that returns climate averages for a user defined time-window using a dataframe of daily temp and VPD values.
+climatenorm = function(df, envelope) {
+
+# initializing an empty data frame
+envelope_avg <- data.frame(matrix(ncol = 13, nrow = 0))
+colnames(envelope_avg) <-   c('Date',glue('vpdmin_{envelope}daymean_kPa'),glue('vpdmin_{envelope}daysd_kPa'),glue('vpd_{envelope}daymean_kPa'),glue('vpd_{envelope}daysd_kPa'),glue('vpdmax_{envelope}daymean_kPa'),glue('vpdmax_{envelope}daysd_kPa'),glue('tmin_{envelope}daymean_C'),glue('tmin_{envelope}daysd_C'),glue('t_{envelope}daymean_C'),glue('t_{envelope}daysd_C'),glue('tmax_{envelope}daymean_C'),glue('tmax_{envelope}daysd_C'))
+
+# initializing a list of datetimes
+datekey = list()
+
+# picking out the dates that match the envelope in the dataframe
+for (i in (seq_len(nrow(df)))) {
+  my_date = df$Date[i]
+  dateprior = my_date - days(envelope)
+  dateprior = c(dateprior)
+  if (dateprior %in% df$Date) {
+        datepick = list(my_date)
+        datekey = c(datekey, datepick)
+  }
+}
+
+# calculate envelope climate means and add them to the empty dataframe
+for (date in datekey) {
+  my_day = as_date(date)
+  my_day_string = as.character(date)
+  dayprior = my_day - days(envelope)
+  window = df[df$Date >= dayprior & df$Date <= my_day,]
+  tpool = c(window$tmin_C, window$tmax_C)
+  vpdpool = c(window$vpdmin_kPa, window$vpdmax_kPa)
+  envelope_avg[nrow(envelope_avg) + 1,] = c(my_day_string,mean(window$vpdmin_kPa),sd(window$vpdmin_kPa),mean(vpdpool),sd(vpdpool),mean(window$vpdmax_kPa),sd(window$vpdmax_kPa),mean(window$tmin_C),sd(window$tmin_C),mean(tpool),sd(tpool),mean(window$tmax_C),sd(window$tmax_C))
+}
+
+envelope_avg$Date = as_date(envelope_avg$Date)
+output = envelope_avg
+return(output)
+}
+
+export_png = function(filepath, plot) {
+  print(plot)
+  ggsave(filepath, width = 6.8, height = 4.2, units = 'in')
+
+}
+
+export_png2 = function(filepath, plot) {
+  print(plot)
+  ggsave(filepath, height = 6.8, width = 4.2, units = 'in')
+}
+```
+
+```{r Load CSV Files, include=FALSE}
+# load petal collection data
+petal = read.csv("data/raw/petal.csv")
+
+# parse the Date column with the proper format
+petal$Date = as.Date(petal$Date, "%m/%d/%Y")
+
+# demystify site designation data values
+petal <- petal %>% 
+  mutate(site = case_match(site, 'A' ~ 'Mount Diablo', 'C' ~ 'SFSU greenhouse'))
+
+# renaming 'site' to 'location'
+names(petal)[names(petal) == 'site'] <- 'location'
+
+# load porometer data
+porometer_preprocess = read.csv('data/raw/porometer/porometer_preprocess.csv')
+
+# filter out unused data columns
+porometer_noise = porometer_preprocess[ , c('Time','Date','remark','Sample','Study.plot','Petal.side','gsw','E_apparent','Tref','Tleaf','leak_pct','plant')]
+
+# renaming 'Study.plot' to 'location'
+names(porometer_noise)[names(porometer_noise) == 'Study.plot'] <- 'location'
+
+# demystify site designation data values
+porometer_noise <- porometer_noise %>% 
+  mutate(location = case_match(location, 'A' ~ 'Mount Diablo', 'C' ~ 'SFSU greenhouse'))
+
+# load flower count and plant size data. Parse date columns.
+flowercount = read.csv('data/raw/flowercount.csv')
+flowercount$date = as.Date(flowercount$date, "%m/%d/%Y")
+plantsize = read.csv('data/raw/plant_size.csv')
+
+# load atmospheric data
+atmosphere = read.csv('data/raw/T_RH/atmosphere_MtDiablo.csv')
+atmosphere_gh = read.csv('data/raw/T_RH/atmosphere_greenhouse.csv')
+
+# parse datetime columns with the proper format
+atmosphere <- atmosphere %>% 
+  mutate(Time = parse_date_time(Time, 
+orders = c("ymd_HMS")))
+
+atmosphere_gh <- atmosphere_gh %>% 
+  mutate(Datetime_PST = parse_date_time(Datetime_PST, 
+orders = c("ymd_HMS")))
+
+atmosphere_gh <- atmosphere_gh %>% 
+  mutate(Datetime_PDT = parse_date_time(Datetime_PDT, 
+orders = c("ymd_HMS")))
+
+atmosphere$Date = as_date(atmosphere$Time)
+atmosphere$HMS = hms::as_hms(atmosphere$Time)
+atmosphere_gh$Date = as_date(atmosphere_gh$Datetime_PST)
+atmosphere_gh$Date_PDT = as_date(atmosphere_gh$Datetime_PDT)
+atmosphere_gh$Time_PDT = hms::as_hms(atmosphere_gh$Time_PDT)
+
+# load PRISM data and parse date column
+prism = read.csv('data/raw/T_RH/PRISM.csv')
+prism$Date = as.Date(prism$Date, "%m/%d/%Y")
+```
+
+### Petals
+
+#### Mount Diablo Petal Surface Area and Water Content
+
+```{r Flower Physiology Operations, include=FALSE}
+petal = petal %>% mutate(p_projectedArea = p_surfaceArea)
+petal = petal %>% mutate(p_surfaceArea = 2*p_surfaceArea)
+petal = petal %>% mutate(p_succulence = (p_freshMass - p_dryMass) / p_projectedArea)
+petal = petal %>% mutate(p_waterContentPerDryMass = (p_freshMass - p_dryMass) / p_dryMass)
+petal = petal %>% mutate(p_waterMass = (p_freshMass - p_dryMass))
+petal = petal %>% mutate(p_tissueMassArea = p_dryMass/p_projectedArea)
+```
+
+```{r include=FALSE}
+# filtering the petal dataframe by site
+petal_gh = filter(petal,location=='SFSU greenhouse')
+petal_MtDiablo = filter(petal,location=='Mount Diablo')
+```
+
+```{r}
+# table of petal stats for each week
+petal_mean <- petal_MtDiablo %>%
+  group_by(Date) %>%
+  get_summary_stats(p_projectedArea, p_waterContentPerDryMass, type = "mean_sd")
+petal_mean
+```
+
+##### One-way Analysis of Variance
+
+```{r}
+# ANOVA
+petal_aov <- aov(p_projectedArea~week,data=petal_MtDiablo)
+water_aov <- aov(p_waterMass~week,data=petal_MtDiablo)
+
+# extracting petal aov summary
+print('Projected Area')
+petal_aov_summary = summary(petal_aov)
+print(petal_aov_summary)
+
+# extracting water aov summary
+print('Absolute Water Content')
+water_aov_summary = summary(water_aov)
+print(water_aov_summary)
+```
+
+```{r}
+petal_aov_df = petal_aov_summary[[1]]
+water_aov_df = water_aov_summary[[1]]
+
+# defining the sum of squares using the type 3 ANOVA
+sumSq_groups = petal_aov_df$`Sum Sq`[1]
+sumSq_error = petal_aov_df$`Sum Sq`[2]
+
+# same for water ANOVA
+sumSq_groups_water = water_aov_df$`Sum Sq`[1]
+sumSq_error_water = water_aov_df$`Sum Sq`[2]
+
+# defining R squared
+petal_R2 = round((sumSq_groups / (sumSq_groups + sumSq_error)),2)
+water_R2 = round((sumSq_groups_water / (sumSq_groups_water + sumSq_error_water)),2)
+
+# printing output
+print('% of projected area variation explained by time')
+petal_R2
+print('% of absolute water content variation explained by time')
+water_R2
+```
+
+##### Testing Model Assumptions
+
+```{r include=FALSE}
+# extracting model residuals
+petal_aov_res1 <- residuals(petal_aov)
+
+# converting aov_res into a dataframe for ggplot
+petal_aov_res2 <- as.data.frame(petal_aov_res1)
+
+# histogram of model residuals
+ggplot(petal_aov_res2,aes(x=petal_aov_res1)) +
+  geom_histogram(binwidth = 0.25)
+```
+
+```{r Petal Area Model Assumptions}
+# testing normality assumptions
+plot(petal_aov)
+
+# shapiro test
+shapiro.test(petal_aov_res1)
+
+# bartlett test
+bartlett.test(p_projectedArea~week, data=petal_MtDiablo)
+
+# log 10 transformation does not pass bartlett test
+bartlett.test(log10(p_projectedArea)~log10(week), data=petal_MtDiablo)
+```
+
+```{r include=FALSE}
+# extracting model residuals
+water_aov_res1 <- residuals(water_aov)
+
+# converting aov_res into a dataframe for ggplot
+water_aov_res2 <- as.data.frame(water_aov_res1)
+
+# histogram of model residuals
+ggplot(water_aov_res2,aes(x=water_aov_res1)) +
+  geom_histogram(binwidth = 1)
+```
+
+```{r Water Content Model Assumptions}
+# testing normality assumptions
+plot(water_aov)
+
+#water_aov_res3 <- petal_aov_res1[-c(54, 69, 88)]
+
+# shapiro test
+shapiro.test(water_aov_res1)
+
+# bartlett test
+bartlett.test(p_waterMass~week, data=petal_MtDiablo)
+
+# log 10 transformation does not pass bartlett test
+bartlett.test(log10(p_waterMass)~log10(week), data=petal_MtDiablo)
+```
+
+##### Pairwise Comparisons
+
+```{r include=FALSE}
+# grouping weeks by petal similarity. These groups were chosen based on Tukey HSD comparisons between weeks. The naming convention reflects the implicit assumption that petal size is a function of seasonal water availability, as the study period covered the seasonal transition from 'wet-winter' to 'dry-summer.'
+endWet = 8
+startDry = 10
+
+petal_MtDiablo = petal_MtDiablo %>%
+  mutate(season = case_when(week < endWet ~ 'wet',
+                            week == endWet ~ 'transition',
+                            week == startDry ~ 'transition',
+                            week > startDry ~ 'dry')
+         )
+```
+
+```{r include=FALSE}
+# ANOVA for seasonal groups
+petal_aov = aov(p_projectedArea~season,data=petal_MtDiablo)
+summary(petal_aov)
+water_aov = aov(p_waterMass~season,data=petal_MtDiablo)
+```
+
+```{r Petal Area Tukey HSD}
+# Tukey test to see which dates are significantly different
+t_petal <- TukeyHSD(petal_aov)
+t_petal
+
+petal_area_MtDiablo_averages = petal_MtDiablo %>% 
+  group_by(season) %>%
+  get_summary_stats(p_projectedArea, type = "mean_sd")
+
+print(petal_area_MtDiablo_averages)
+
+# Visualization of the Tukey test
+plot(t_petal)
+```
+
+```{r Greenhouse Water Content Tukey HSD}
+# Tukey test to see which dates are significantly different
+t_water <- TukeyHSD(water_aov)
+t_water
+
+petal_water_MtDiablo_averages = petal_MtDiablo %>% 
+  group_by(season) %>%
+  get_summary_stats(p_waterMass, type = "mean_sd")
+
+print(petal_water_MtDiablo_averages)
+
+# Visualization of the Tukey test
+plot(t_water)
+```
+
+#### Greenhouse Petal Surface Area and Water Content
+
+```{r Greenhouse Irrigation System, include=FALSE}
+# adding in column denoting when the greenhouse irrigation system was built
+
+irrigationBuildWeek = as.Date("12/18/2025", "%m/%d/%Y")
+
+petal_gh = petal_gh %>%
+  mutate(water_treatment = case_when(Date <= irrigationBuildWeek ~ 'before',
+                             Date > irrigationBuildWeek ~ 'after')
+         )
+
+petal_gh_before_irrigation = filter(petal_gh, water_treatment == 'before')
+```
+
+##### Linear Mixed Effects Models
+
+```{r Linear Mixed Effects Models}
+greenhouse_Apetal_lme <- lmer(p_projectedArea ~ week_of_flowering + (1 | plant), data = petal_gh)
+greenhouse_Wmass_lme <- lmer(p_waterMass ~ week_of_flowering + (1 | plant), data = petal_gh)
+
+print('Projected Area')
+anova(greenhouse_Apetal_lme) 
+print('Absolute Water Content')
+anova(greenhouse_Wmass_lme)
+```
+
+```{r}
+print("% variation in greenhouse projected area:")
+petal_R2_gh = rsq.lmm(greenhouse_Apetal_lme)
+petal_R2_gh = round(petal_R2_gh$model,2)
+petal_R2_gh
+
+print("% variation in greenhouse water content:")
+water_R2_gh = rsq.lmm(greenhouse_Wmass_lme)
+water_R2_gh = round(water_R2_gh$model,2)
+water_R2_gh
+```
+
+##### Testing Model Assumptions
+
+```{r Greenhouse Petal Area Model Assumptions}
+# extracting model residuals
+greenhouse_Apetal_lme_residuals = residuals(greenhouse_Apetal_lme)
+
+# shapiro test
+shapiro.test(greenhouse_Apetal_lme_residuals)
+
+# plotting fitted vs. residuals
+plot(greenhouse_Apetal_lme)
+
+# q-q plot
+qqnorm(greenhouse_Apetal_lme_residuals)
+qqline(greenhouse_Apetal_lme_residuals)
+```
+
+```{r Greenhouse Water Content Model Assumptions}
+# extracting model residuals
+greenhouse_Wmass_lme_residuals = residuals(greenhouse_Wmass_lme)
+
+# shapiro test
+shapiro.test(greenhouse_Wmass_lme_residuals)
+
+# plot fitted vs. model residuals
+plot(greenhouse_Wmass_lme)
+
+# q-q plot
+qqnorm(greenhouse_Wmass_lme_residuals)
+qqline(greenhouse_Wmass_lme_residuals)
+```
+
+##### Pairwise Comparisons
+
+```{r include=FALSE}
+# grouping similar weeks together.
+petal_gh = petal_gh %>%
+  mutate(floral_development_period = case_when(
+                            week_of_flowering < 4 & week_of_flowering > 0 ~ 'week 1 - 3',
+                            week_of_flowering < 6 & week_of_flowering > 3 ~ 'week 4 - 5',
+                            week_of_flowering >= 6 ~ 'week 6 - 18'
+                            )
+         )
+```
+
+```{r Projected Area Linear Mixed Effects Model, include=FALSE}
+# Linear mixed effects model
+petal_gh_lme_model <- lmer(p_projectedArea ~ floral_development_period + (1 | plant), data = petal_gh)
+mass_gh_lme_model <- lmer(p_waterMass ~ floral_development_period + (1 | plant), data = petal_gh)
+```
+
+```{r Greenhouse Petal Area Tukey HSD}
+# tukey test
+t_gh = emmeans(petal_gh_lme_model, list(pairwise ~ floral_development_period), adjust = "tukey")
+
+# calculating group means and standard deviations.
+petal_area_gh_averages = petal_gh %>% 
+  group_by(floral_development_period) %>%
+  get_summary_stats(p_projectedArea, type = "mean_sd")
+
+# output
+print(petal_area_gh_averages)
+t_gh
+plot(t_gh)
+```
+
+```{r Water Content Tukey HSD}
+# tukey test
+t_mass_gh = emmeans(mass_gh_lme_model, list(pairwise ~ floral_development_period), adjust = "tukey")
+
+# calculating group means and standard deviations.
+petal_water_gh_averages = petal_gh %>% 
+  group_by(floral_development_period) %>%
+  get_summary_stats(p_waterMass, type = "mean_sd")
+
+# output
+print(petal_water_gh_averages)
+t_mass_gh
+plot(t_mass_gh)
+```
+
+#### Petal Boxplots
+
+```{r Petal Boxplots, echo=FALSE, warning=FALSE}
+p1 = ggplot(petal_MtDiablo, aes(group = Date, x = week,y = p_projectedArea)) +
+  geom_boxplot(fill = 'orange') +
+  labs(title = 'Mount Diablo', subtitle = 'ANOVA, n = 269', y = "<i>A<sub>petal</sub></i> (cm<sup>2</sup>)", x = NULL) +
+  geom_richtext(
+    x = 15, y = 17, 
+    label = glue("<i>r</i><sup>2</sup> = {petal_R2}***"), 
+    fill = NA, label.color = NA,
+    label.padding = grid::unit(rep(0, 4), "pt")) +
+  theme_classic() +
+  ylim(0,20) +
+  theme(axis.title.y = element_markdown(),
+        plot.title = element_text(hjust = 0.5, size = 12),
+        plot.subtitle = element_text(hjust = 0.5))
+
+p2 = ggplot(petal_MtDiablo, aes(group = Date, x = week,y = p_waterMass)) +
+  geom_boxplot(fill = 'lightblue') +
+  labs(y = "<i>W<sub>absolute</sub></i> (mg)", x = 'Week of field study') +
+    geom_richtext(
+    x = 15, y = 170, 
+    label = glue("<i>r</i><sup>2</sup> = {water_R2}***"), 
+    fill = NA, label.color = NA,
+    label.padding = grid::unit(rep(0, 4), "pt")) +
+  theme_classic() +
+  ylim(NA,200) +
+  theme(axis.title.y = element_markdown())
+
+p3 = ggplot(petal_gh, aes(group = week_of_flowering, x = week_of_flowering, y = p_projectedArea)) +
+  geom_boxplot(show.legend = FALSE, fill = 'orange') +
+  labs(title = 'SFSU Greenhouse', subtitle = 'LMM, n = 125', x = NULL, y = NULL) +
+  geom_richtext(
+    x = 15, y = 17, 
+    label = glue("<i>r</i><sup>2</sup> = {petal_R2_gh}***"), 
+    fill = NA, label.color = NA,
+    label.padding = grid::unit(rep(0, 4), "pt")) +
+  theme_classic() +
+  ylim(0,20) +
+  #xlim(NA,20) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, size = 12),
+        plot.subtitle = element_text(hjust = 0.5))
+
+p4 = ggplot(petal_gh, aes(group = week_of_flowering, x = week_of_flowering, y = p_waterMass)) +
+  geom_boxplot(show.legend = FALSE, fill = 'lightblue') +
+  labs(x = "Week of flowering", y = NULL) +
+  geom_richtext(
+    x = 15, y = 170, 
+    label = glue("<i>r</i><sup>2</sup> = {water_R2_gh}***"), 
+    fill = NA, label.color = NA,
+    label.padding = grid::unit(rep(0, 4), "pt")) +
+  ylim(0,200) +
+  theme_classic()
+
+# panels
+petal_boxplots = ( (p1 + p3 ) / (p2 + p4) ) + plot_annotation(tag_levels = 'A')
+export_png('figures/petal_boxplots.png', petal_boxplots)
+```
+
+#### Petal Scaling Relationships
+
+```{r modeling Mount Diablo Petals Independently from Greenhouse Petals, include=FALSE}
+petal_MtDiablo_subset = petal_MtDiablo[ , c('Date', 'plant', 'p_projectedArea', 'p_dryMass', 'p_waterMass')]
+names(petal_MtDiablo_subset)[names(petal_MtDiablo_subset) == 'p_projectedArea'] <- 'p_projectedArea_MtD'
+names(petal_MtDiablo_subset)[names(petal_MtDiablo_subset) == 'p_dryMass'] <- 'p_dryMass_MtD'
+names(petal_MtDiablo_subset)[names(petal_MtDiablo_subset) == 'p_waterMass'] <- 'p_waterMass_MtD'
+petal = merge(petal, petal_MtDiablo_subset, by = c('Date', 'plant'), all.x = TRUE)
+```
+
+```{r include=FALSE}
+petal = petal %>% mutate(log_p_waterMass_MtD = log10(p_waterMass_MtD))
+petal = petal %>% mutate(log_p_projectedArea_MtD = log10(p_projectedArea_MtD))
+petal = petal %>% mutate(log_p_waterContentPerDryMass_MtD = log10(p_waterMass_MtD / p_dryMass_MtD))
+```
+
+```{r Petal Scaling Relationships}
+print('Area and Absolute Water Content Regression')
+lm_Apetal_Mh2o = lm(log_p_projectedArea_MtD~log_p_waterMass_MtD, data=petal)
+summary(lm_Apetal_Mh2o)
+
+# extracting coefficients and r-squared
+Apetal_Mh2o_coeff = lm_Apetal_Mh2o$coefficients
+Apetal_Mh2o_slope = round(as.numeric(Apetal_Mh2o_coeff[2]),2)
+Apetal_Mh2o_intercept = round(as.numeric(Apetal_Mh2o_coeff[1]),2)
+Apetal_Mh2o_R2 = round(rsq(lm_Apetal_Mh2o),2)
+
+print('Water Content per Dry Mass and Area Regression')
+lm_Wmass_Apetal = lm(log_p_waterContentPerDryMass_MtD~log_p_projectedArea_MtD, data=petal)
+summary(lm_Wmass_Apetal)
+
+# extracting coefficients and r-squared
+Wmass_Apetal_coeff = lm_Wmass_Apetal$coefficients
+Wmass_Apetal_slope = round(as.numeric(Wmass_Apetal_coeff[2]),2)
+Wmass_Apetal_intercept = round(as.numeric(Wmass_Apetal_coeff[1]),2)
+Wmass_Apetal_R2 = round(rsq(lm_Wmass_Apetal),2)
+```
+
+```{r include=FALSE}
+# call the predict function with the log-log model, and log transformed x values.
+log_p_projectedArea_MtD_predicted = predict.lm(lm_Apetal_Mh2o, petal, interval = 'confidence')
+petal = cbind(petal, log_p_projectedArea_MtD_predicted)
+names(petal)[names(petal) == 'fit'] <- 'log_p_projectedArea_MtD_fit'
+names(petal)[names(petal) == 'lwr'] <- 'log_p_projectedArea_MtD_lwr'
+names(petal)[names(petal) == 'upr'] <- 'log_p_projectedArea_MtD_upr'
+
+# make a new column that takes the anti log of the predicted values and confidence intervals
+petal$p_projectedArea_MtD_fit = 10^(petal$log_p_projectedArea_MtD_fit)
+petal$p_projectedArea_MtD_lwr = 10^(petal$log_p_projectedArea_MtD_lwr)
+petal$p_projectedArea_MtD_upr = 10^(petal$log_p_projectedArea_MtD_upr)
+```
+
+```{r include=FALSE}
+# call the predict function with the log-log model, and log transformed x values.
+log_p_Wmass_MtD_predicted = predict.lm(lm_Wmass_Apetal, petal, interval = 'confidence')
+petal = cbind(petal, log_p_Wmass_MtD_predicted)
+names(petal)[names(petal) == 'fit'] <- 'log_p_Wmass_MtD_fit'
+names(petal)[names(petal) == 'lwr'] <- 'log_p_Wmass_MtD_lwr'
+names(petal)[names(petal) == 'upr'] <- 'log_p_Wmass_MtD_upr'
+
+# make a new column that takes the anti log of the predicted values and confidence intervals
+petal$p_Wmass_MtD_fit = 10^(petal$log_p_Wmass_MtD_fit)
+petal$p_Wmass_MtD_lwr = 10^(petal$log_p_Wmass_MtD_lwr)
+petal$p_Wmass_MtD_upr = 10^(petal$log_p_Wmass_MtD_upr)
+```
+
+```{r Surface Area and Water Mass Scatterplot, warning=FALSE}
+area_absolute_water = ggplot(petal, aes(y = p_projectedArea, x = p_waterMass)) +
+  geom_point(aes(colour = location, shape = location), size = 3, show.legend = FALSE) +
+  geom_line(
+    aes(x = p_waterMass_MtD, y = p_projectedArea_MtD_fit), 
+    linewidth = 1, show.legend = FALSE) +
+  geom_ribbon(
+    aes(x = p_waterMass_MtD, ymin = p_projectedArea_MtD_lwr, ymax = p_projectedArea_MtD_upr),
+    alpha = 0.2, show.legend = FALSE) +
+  labs(x = "<i>W<sub>absolute</sub></i> (mg)", 
+       y = "<i>A<sub>petal</sub></i> (cm<sup>2</sup>)"
+       ) +
+  #geom_function(fun = ~ .x*10^-0.55, linetype = 2
+  #              ) +
+  #coord_fixed(ratio = 2) +
+  geom_richtext(
+    x = 150, y = 6, 
+    label = glue("<i>A<sub>petal</sub></i> = <i>W<sub>absolute</sub></i><sup>{Apetal_Mh2o_slope}</sup> ∙ 10<sup>{Apetal_Mh2o_intercept}</sup>"), 
+    fill = NA, label.color = NA,
+    label.padding = grid::unit(rep(0, 4), "pt")) +
+  geom_richtext(
+    #x = 150, y = 4.5,
+    x = 50, y = 17, 
+    label = glue("<i>r</i><sup>2</sup> = {Apetal_Mh2o_R2}***"), 
+    fill = NA, label.color = NA,
+    label.padding = grid::unit(rep(0, 4), "pt") ) +
+  scale_colour_brewer(palette = 'Paired') +
+  ylim(NA,20) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown())
+
+export_png('figures/area_absolute_water.png', area_absolute_water)
+```
+
+```{r DW:W and Projected Area Scatterplot, warning=FALSE}
+water_mass_area = ggplot(petal, aes(x = p_projectedArea, y = ((p_waterMass) / p_dryMass))) +
+  geom_point(aes(colour = location, shape = location), size = 4, show.legend = FALSE) +
+  geom_smooth(
+    aes(
+      x = p_projectedArea_MtD, 
+      y = (p_waterMass_MtD / p_dryMass_MtD)
+       ), 
+    method="lm",
+    se=TRUE,
+    formula= y ~ I(x^(22/100)),
+    colour = 'black') +
+  labs(x = "<i>A<sub>petal</sub></i> (cm<sup>2</sup>)", 
+       y = "<i>W<sub>mass</sub></i> (g g<sup>-1</sup>)") +
+  geom_richtext(x = 15, y = 4.5, 
+                label = glue("<i>W<sub>mass</sub></i> = <i>A<sub>petal</sub></i><sup>{Wmass_Apetal_slope}</sup> ∙ 10<sup>{Wmass_Apetal_intercept}</sup>"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(x = 15, y = 5.5, label = glue("<i>r</i><sup>2</sup> = {Wmass_Apetal_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  scale_colour_brewer(palette = 'Paired') +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown()
+        )
+
+export_png('figures/water_mass_area.png', water_mass_area)
+```
+
+### Whole Plant Flower Production
+
+```{r Flowering Frequency Column Plot}
+titleFig5 <- expression(paste("Flowers produced by twenty ", italic("Eschscholzia californica"), " plants during spring 2025"))
+
+flowercount_columns = ggplot(flowercount, aes(x = date, y = flower_count, fill = rep)) +
+  geom_col(show.legend = FALSE) + 
+  xlab("Date") +
+  ylab("Number of flowers") +
+  #labs(subtitle=titleFig5, fill = 'Flagged plant (#1 - #20)') + 
+  scale_fill_distiller(palette = 'Oranges') + 
+  theme_classic()
+
+export_png('figures/flowercount_columns.png', flowercount_columns)
+```
+
+```{r Plant Size and Reproductive Output Scatterplot, message=FALSE, warning=FALSE, include=FALSE}
+# initializing an empty data frame
+reproductive_output <- data.frame(matrix(ncol = 2, nrow = 0))
+colnames(reproductive_output) <- c('rep', 'flowerTotal')
+
+flowercount_April22 = filter(flowercount, date<as.Date('2025-04-29'))
+
+# adding the reproductive output of each plant to the data frame
+for (n in seq(1,20)) {
+  f_total = sum(flowercount_April22[which(flowercount_April22$rep==n), 6])
+  reproductive_output[nrow(reproductive_output) + 1,] = c(n,f_total)
+}
+
+reproductive_output = merge(reproductive_output, plantsize)
+reproductive_output$radius_cm = reproductive_output$radius_m*100
+
+radius_cm = seq(5, 30, 0.5)
+radius_df = data.frame(radius_cm)
+reproductive_output = merge(reproductive_output, radius_df, by = c('radius_cm'), all = TRUE)
+```
+
+```{r}
+# linear regression
+reproductive_output_lm = lm(log10(flowerTotal)~log10(radius_cm), data = reproductive_output)
+print('Observed whole plant flower production and plant radius linear regression')
+summary(reproductive_output_lm)
+
+# glm with a zero-truncated Poisson distribution
+reproductive_output_glm = glm(flowerTotal~radius_cm, family = Tpoisson(), data = reproductive_output)
+check_overdispersion(reproductive_output_glm)
+
+# negative binomial with glm.nb
+reproductive_output_glm.nb = glm.nb(flowerTotal~radius_cm, data = reproductive_output)
+AIC(reproductive_output_glm.nb,reproductive_output_lm)
+
+# zero-truncated negative binomial with vglm
+reproductive_output_vglm = vglm(flowerTotal~radius_cm, family = posnegbinomial(), data = reproductive_output)
+AIC(reproductive_output_vglm)
+
+# truncated negative binomial with glmmTMB
+reproductive_output_glmmTMB = glmmTMB(flowerTotal~radius_cm, family = truncated_nbinom1, data = reproductive_output)
+AIC(reproductive_output_glmmTMB, reproductive_output_lm)
+
+# extracting coefficients and r-squared
+repro_output_coeff = reproductive_output_lm$coefficients
+repro_output_slope = round(as.numeric(repro_output_coeff[2]),2)
+repro_output_intercept = round(as.numeric(repro_output_coeff[1]),2)
+repro_output_R2 = round(rsq(reproductive_output_lm),2)
+
+#flower_predict = predict.glm(reproductive_output_glm.nb, reproductive_output, se.fit = TRUE)
+#flower_fit_se = data.frame(flower_predict$fit,flower_predict$se.fit)
+#reproductive_output = cbind(reproductive_output, flower_fit_se)
+
+# predicting total flowers from plant size
+reproductive_output = log_predict(reproductive_output_lm, reproductive_output, 'flowerTotal')
+```
+
+```{r message=FALSE, warning=FALSE}
+# log scale scatterplot of plant radius vs total number of flowers
+flowercount_scatter = ggplot(reproductive_output, aes(x=radius_cm,y=flowerTotal)) + 
+  geom_point() +
+  xlab("Plant radius (cm)") +
+  ylab("Total number of flowers")+
+  geom_richtext(aes(x = 17, y = 1.5), 
+                label = glue("log<sub>10</sub><i>y</i> = {repro_output_slope} ∙ log<sub>10</sub><i>x</i> - {-1*repro_output_intercept}"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(aes(x = 7, y = 50), 
+                label = glue("<i>r</i><sup>2</sup> = {repro_output_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  scale_y_log10() +
+  scale_x_log10() +
+  #geom_line(
+  #  aes(x = radius_cm, y = flower_predict.fit), 
+  #  linewidth = 1, color = 'blue', show.legend = FALSE) +
+  #geom_ribbon(
+  #  aes(x = radius_cm, ymin = flower_predict.fit - flower_predict.se.fit, ymax = flower_predict.fit + flower_predict.se.fit),
+  #  alpha = 0.2, show.legend = FALSE) +
+  geom_smooth(method="lm",se=TRUE) +
+  theme_classic()
+
+export_png('figures/flowercount_scatter.png', flowercount_scatter)
+```
+
+### Climate
+
+```{r Calculating VPD, include=FALSE}
+atmosphere$VPD = vpd(atmosphere$Humidity..rh.,atmosphere$Celsius.C.)
+```
+
+```{r Daylight Savings Correction, include=FALSE}
+# initializing the data frame and defining delayed DST
+atmosphere_noDST = atmosphere
+delayed_DST = ymd_hms("2025-3-11T9:38:00") 
+
+# daylight savings correction. DST starts after March 11 9:38am in the atmosphere dataframe due to delayed timestamp update.
+for (i in (seq_len(nrow(atmosphere_noDST)))) {
+  my_datetime = atmosphere_noDST[i,1]
+  if (my_datetime > delayed_DST) {
+    atmosphere_noDST[i,1] = my_datetime - hours(1)
+    atmosphere_noDST[i,9] = hms::as_hms(my_datetime - hours(1))
+  }
+}
+```
+
+#### PRISM Regression
+
+```{r Time Zone Management, include=FALSE}
+# removing handheld sensor data from atmosphere_noDST
+atmosphere_UTC = filter(atmosphere_noDST, Comments != 'Vaisala hand-held')
+
+# adding UTC timestamp column
+atmosphere_UTC$UTC = atmosphere_UTC$Time + hours(8)
+
+# adding a UTC date column
+atmosphere_UTC$UTC_Date = as_date(atmosphere_UTC$UTC)
+
+# adding a PRISM timestamp column
+atmosphere_UTC$PRISM_timestamp = atmosphere_UTC$UTC + hours(12)
+
+# adding a PRISM date column
+atmosphere_UTC$PRISM_Date = as_date(atmosphere_UTC$PRISM_timestamp)
+
+# converting to character
+atmosphere_UTC$UTC_Date = as.character(atmosphere_UTC$UTC_Date)
+atmosphere_UTC$PRISM_Date = as.character(atmosphere_UTC$PRISM_Date)
+```
+
+```{r PRISM Regression, include=FALSE}
+# filtering out incomplete PRISM days
+atmosphere_UTC = subset(atmosphere_UTC, !(PRISM_Date %in% c('2025-03-05','2025-03-26','2025-04-09','2025-04-16','2025-04-23','2025-07-03')))
+
+#calculating VPD daily mean and standard deviation from the EZlog data
+UTC_VPD_mean <- atmosphere_UTC %>%
+  group_by(PRISM_Date) %>%
+  get_summary_stats(VPD, type = c("full"))
+
+#merging by date
+UTC_VPD_mean$Date = UTC_VPD_mean$PRISM_Date
+#UTC_VPD_mean$Date = as_date(UTC_VPD_mean$Date)
+prism_UTC_merge = merge(prism, UTC_VPD_mean, by = c("Date"), all.x = TRUE)
+
+#converting units
+prism_UTC_merge$vpdmax..kPa. = 0.1 * prism_UTC_merge$vpdmax..hPa.
+prism_UTC_merge$vpdmin..kPa. = 0.1 * prism_UTC_merge$vpdmin..hPa.
+
+#defining PRISM VPD mean
+prism_UTC_merge$vpdmean..kPa. = (prism_UTC_merge$vpdmax..kPa. + prism_UTC_merge$vpdmin..kPa)/2
+
+#defining the columns to statistical min and max
+names(prism_UTC_merge)[names(prism_UTC_merge) == 'min'] <- 'EZlog_vpdmin'
+names(prism_UTC_merge)[names(prism_UTC_merge) == 'max'] <- 'EZlog_vpdmax'
+
+#calculating values using the linear models. Model without a number only used mean and max values before April 24.
+#Model 2 for min, max and mean used the whole dataset. 
+#Used model 2 for vpdmin, restricting data to before April 24 makes R square too low.
+#Models 3 and 4 for min and max modeled EZ log standard deviation rather than minimum and maximum values.
+prism_UTC_merge$model2_vpdmin = (0.65510 * prism_UTC_merge$vpdmin..kPa.) + 0.05115
+prism_UTC_merge$model3_vpdmin = (0.18700 * prism_UTC_merge$vpdmin..kPa.) + 0.02288
+prism_UTC_merge$model4_vpdmin = (1.02829 * prism_UTC_merge$vpdmin..kPa.) + 0.01484
+prism_UTC_merge$model_vpdmean = (1.34005 * prism_UTC_merge$vpdmean..kPa.) - 0.07902
+prism_UTC_merge$model2_vpdmean = (1.59790 * prism_UTC_merge$vpdmean..kPa.) + 0.04487
+prism_UTC_merge$model_vpdmax = (2.1405 * prism_UTC_merge$vpdmax..kPa.) - 0.2163
+prism_UTC_merge$model2_vpdmax = (2.10387 * prism_UTC_merge$vpdmax..kPa.) + 0.50231
+prism_UTC_merge$model3_vpdmax = (1.56964 * prism_UTC_merge$vpdmax..kPa.) - 0.26105
+prism_UTC_merge$model4_vpdmax = (1.66983 * prism_UTC_merge$vpdmax..kPa.) + 0.09562
+
+ggplot(prism_UTC_merge, aes(x=Date,y=mean)) + 
+  geom_line(aes(x=Date,y=EZlog_vpdmin), color = 'darkblue', show.legend = TRUE) +
+  geom_line(aes(x=Date,y=model2_vpdmin), linetype = 2, color = 'blue') +
+  geom_line(aes(x=Date,y=vpdmin..kPa.), linetype = 2, color = 'lightblue') +
+  geom_line(aes(x=Date,y=EZlog_vpdmax), color = 'red') +
+  geom_line(aes(x=Date,y=model_vpdmax), linetype = 2, color = 'orange') +
+  geom_line(aes(x=Date,y=mean)) +
+  geom_line(aes(x=Date,y=model_vpdmean), linetype = 2) +
+  geom_line(aes(x=Date,y=vpdmean..kPa.), linetype = 3) +
+  geom_line(aes(x=Date,y=model2_vpdmean), linetype = 4) +
+  labs(title = 'Actual climate data compared with modeled data', y = 'Vapor pressure deficit (kPa)')
+
+ggplot(prism_UTC_merge, aes(x=Date,y=mean)) + 
+  geom_ribbon(aes(ymin = EZlog_vpdmin, ymax = EZlog_vpdmax), fill = "lightgrey") +
+  geom_ribbon(aes(ymin = vpdmin..kPa., ymax = vpdmax..kPa.), fill = "grey70") +
+  geom_line(aes(x=Date,y=mean)) +
+  geom_line(aes(x=Date,y=vpdmean..kPa.), linetype = 2)+
+  labs(title = 'PRISM average daily VPD comparison', y = 'Vapor pressure deficit (kPa)')
+
+# maybe model a shorter timespan, where PRISM data is more accurate?
+prism_vpd_model_data = filter(prism_UTC_merge, Date < mdy('4/24/2025'))
+```
+
+```{r include=FALSE}
+# do a lm() call
+vpdmean_lm = (lm(mean~vpdmean..kPa., data=prism_vpd_model_data))
+vpdmean_R2 = round(rsq(vpdmean_lm), 2)
+
+vpdmax_lm = (lm(EZlog_vpdmax~vpdmax..kPa., data=prism_vpd_model_data))
+vpdmax_R2 = round(rsq(vpdmax_lm), 2)
+
+vpd_min_lm = (lm(EZlog_vpdmin~vpdmin..kPa., data=prism_UTC_merge))
+vpdmin_R2 = round(rsq(vpd_min_lm), 2)
+```
+
+```{r include=FALSE}
+#calculating temperature daily mean and standard deviation from the EZlog data
+UTC_temp_mean <- atmosphere_UTC %>%
+  group_by(PRISM_Date) %>%
+  get_summary_stats(Celsius.C., type = "full")
+
+#merging by date
+UTC_temp_mean$Date = UTC_temp_mean$PRISM_Date
+prism_UTC_temp_merge = merge(prism, UTC_temp_mean, by = c("Date"), all.x = TRUE)
+
+# defining the columns to statistical min and max
+names(prism_UTC_temp_merge)[names(prism_UTC_temp_merge) == 'min'] <- 'EZlog_tmin'
+names(prism_UTC_temp_merge)[names(prism_UTC_temp_merge) == 'max'] <- 'EZlog_tmax'
+
+#calculating values using the linear models. The first model only used data before April 24.
+#the second model used all data, including after April 24.
+prism_UTC_temp_merge$model_tmin = (0.6780 * prism_UTC_temp_merge$tmin..degrees.C.) + 0.4402
+prism_UTC_temp_merge$model2_tmin = (0.88055 * prism_UTC_temp_merge$tmin..degrees.C.) - 0.35062
+prism_UTC_temp_merge$model3_tmin = (0.77332 * prism_UTC_temp_merge$tmin..degrees.C.) + 1.32325
+prism_UTC_temp_merge$model4_tmin = (1.0921 * prism_UTC_temp_merge$tmin..degrees.C.) - 0.5026
+prism_UTC_temp_merge$model_tmean = (1.10437 * prism_UTC_temp_merge$tmean..degrees.C.) + 0.08957
+prism_UTC_temp_merge$model2_tmean = (1.22061 * prism_UTC_temp_merge$tmean..degrees.C.) - 0.44046
+prism_UTC_temp_merge$model_tmax = (1.4160 * prism_UTC_temp_merge$tmax..degrees.C.) + 0.3717
+prism_UTC_temp_merge$model2_tmax = (1.22061 * prism_UTC_temp_merge$tmax..degrees.C.) - 0.44046
+prism_UTC_temp_merge$model3_tmax = (1.28423 * prism_UTC_temp_merge$tmax..degrees.C.) - 1.92625
+prism_UTC_temp_merge$model4_tmax = (1.24998 * prism_UTC_temp_merge$tmax..degrees.C.) + 0.21295
+
+ggplot(prism_UTC_temp_merge, aes(x=Date,y=tmean..degrees.C.)) + 
+  geom_ribbon(aes(ymin = EZlog_tmin, ymax = EZlog_tmax), fill = "lightgrey") +
+  geom_ribbon(aes(ymin = tmin..degrees.C., ymax = tmax..degrees.C.), fill = "grey70") +
+  geom_line(aes(x=Date,y=mean)) +
+  geom_line(aes(x=Date,y=tmean..degrees.C.), linetype = 2)+
+  labs(title = 'PRISM average daily temperature comparison', y = 'Temperature (degrees C)')
+
+ggplot(prism_UTC_temp_merge, aes(x=Date,y=mean)) + 
+  geom_line(aes(x=Date,y=EZlog_tmin), color = 'darkblue', show.legend = TRUE) +
+  geom_line(aes(x=Date,y=model_tmin), linetype = 2, color = 'blue') +
+  geom_line(aes(x=Date,y=model2_tmin), linetype = 2, color = 'lightblue') +
+  geom_line(aes(x=Date,y=EZlog_tmax), color = 'red') +
+  geom_line(aes(x=Date,y=model_tmax), linetype = 2, color = 'orange') +
+  geom_line(aes(x=Date,y=mean)) +
+  geom_line(aes(x=Date,y=model_tmean), linetype = 2) +
+  geom_line(aes(x=Date,y=tmean..degrees.C.), linetype = 3) +
+  geom_line(aes(x=Date,y=model2_tmean), linetype = 4) +
+  labs(title = 'Actual climate data compared with modeled data', y = 'Temperature (degrees C)')
+
+# maybe model a shorter timespan, where PRISM data is more accurate?
+#prism_temp_model_data = prism_UTC_temp_merge
+prism_temp_model_data = filter(prism_UTC_temp_merge, Date < mdy('4/24/2025'))
+
+ggplot(prism_temp_model_data, aes(x=tmean..degrees.C.,y=mean)) +
+  geom_point() +
+  geom_smooth(method="lm",se=TRUE)
+
+ggplot(prism_temp_model_data, aes(x=tmin..degrees.C.,y=EZlog_tmin)) +
+  geom_point() +
+  geom_smooth(method="lm",se=TRUE)
+
+ggplot(prism_temp_model_data, aes(x=tmax..degrees.C.,y=EZlog_tmax)) +
+  geom_point() +
+  geom_smooth(method="lm",se=TRUE)
+```
+
+```{r include=FALSE}
+# do a lm() call
+tmean_lm = (lm(mean~tmean..degrees.C., data=prism_temp_model_data))
+summary(tmean_lm)
+tmean_R2 = round(rsq(tmean_lm), 2)
+
+tmax_lm = (lm(EZlog_tmax~tmax..degrees.C., data=prism_temp_model_data))
+summary(tmax_lm)
+tmax_R2 = round(rsq(tmax_lm), 2)
+
+tmin_lm = (lm(EZlog_tmin~tmin..degrees.C., data=prism_temp_model_data))
+summary(tmin_lm)
+tmin_R2 = round(rsq(tmin_lm), 2)
+```
+
+```{r include=FALSE}
+# define a two column dataframe: x and y
+# call mutate to make a new column that names the variable (e.g. vpdmin)
+PRISM = prism_UTC_merge$vpdmin..kPa.
+EZ_log = prism_UTC_merge$EZlog_vpdmin
+Date = prism_UTC_merge$Date
+vpdmin = data.frame(Date, PRISM, EZ_log)
+vpdmin$statistic = 'min'
+
+# repeat for other stats
+PRISM = prism_vpd_model_data$vpdmean..kPa.
+EZ_log = prism_vpd_model_data$mean
+Date = prism_vpd_model_data$Date
+vpdmean = data.frame(Date, PRISM, EZ_log)
+vpdmean$statistic = 'mean'
+
+# repeat for other stats
+PRISM = prism_vpd_model_data$vpdmax..kPa.
+EZ_log = prism_vpd_model_data$EZlog_vpdmax
+Date = prism_vpd_model_data$Date
+vpdmax = data.frame(Date, PRISM, EZ_log)
+vpdmax$statistic = 'max'
+
+# merge data frames
+vpd_df = merge(vpdmean, vpdmax, by = c('Date', 'PRISM', 'EZ_log', 'statistic'), all = TRUE)
+vpd_df = merge(vpd_df, vpdmin, by = c('Date', 'PRISM', 'EZ_log', 'statistic'), all = TRUE)
+```
+
+```{r include=FALSE}
+# define a two column dataframe: x and y
+# call mutate to make a new column that names the variable (e.g. vpdmin)
+PRISM = prism_temp_model_data$tmin..degrees.C.
+EZ_log = prism_temp_model_data$EZlog_tmin
+Date = prism_temp_model_data$Date
+tmin = data.frame(Date, PRISM, EZ_log)
+tmin$statistic = 'min'
+
+# repeat for other stats
+PRISM = prism_temp_model_data$tmean..degrees.C.
+EZ_log = prism_temp_model_data$mean
+Date = prism_temp_model_data$Date
+tmean = data.frame(Date, PRISM, EZ_log)
+tmean$statistic = 'mean'
+
+# repeat for other stats
+PRISM = prism_temp_model_data$tmax..degrees.C.
+EZ_log = prism_temp_model_data$EZlog_tmax
+Date = prism_temp_model_data$Date
+tmax = data.frame(Date, PRISM, EZ_log)
+tmax$statistic = 'max'
+
+# merge data frames
+t_df = merge(tmean, tmax, by = c('Date', 'PRISM', 'EZ_log', 'statistic'), all = TRUE)
+t_df = merge(t_df, tmin, by = c('Date', 'PRISM', 'EZ_log', 'statistic'), all = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+vpd_df = vpd_df %>% 
+  arrange(statistic)
+t_df = t_df %>% 
+  arrange(statistic)
+
+p15 = ggplot(vpd_df, aes(PRISM, EZ_log)) +
+  geom_point(aes(shape = statistic, color = statistic)) +
+  geom_smooth(aes(color = statistic), method="lm",se=TRUE) +
+  geom_richtext(aes(x = 2.2, y = 3), 
+                label = glue("<i>r</i><sup>2</sup> = {vpdmax_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(aes(x = 2, y = 2), 
+                label = glue("<i>r</i><sup>2</sup> = {vpdmean_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(aes(x = 1.5, y = 1), 
+                label = glue("<i>r</i><sup>2</sup> = {vpdmin_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  scale_color_discrete(palette = c('darkblue','blue','cyan3')) +
+  labs(x = "PRISM VPD (kPa)", 
+       y = "Sensor VPD (kPa)",
+       color = NULL,
+       shape = NULL) +
+  scale_y_continuous(n.breaks = 6) +
+  theme_classic() +
+  theme(legend.position = 'bottom')
+
+p16 = ggplot(t_df, aes(PRISM, EZ_log)) +
+  geom_point(aes(shape = statistic, color = statistic)) +
+  geom_smooth(aes(color = statistic),method="lm",se=TRUE) +
+  geom_richtext(aes(x = 24, y = 25), 
+                label = glue("<i>r</i><sup>2</sup> = {tmax_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(aes(x = 23, y = 20), 
+                label = glue("<i>r</i><sup>2</sup> = {tmean_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(aes(x = 16, y = 10), 
+                label = glue("<i>r</i><sup>2</sup> = {tmin_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +  
+  scale_color_discrete(palette = c('darkred','red','orange')) +
+  labs(x = "PRISM air temperature (°C)", 
+       y = "Sensor air temperature (°C)",
+       color = NULL,
+       shape = NULL) +
+  scale_x_continuous(n.breaks = 7) +
+  theme_classic() +
+  theme(legend.position = 'bottom')
+
+prism_model = p15 + p16 + plot_annotation(tag_levels = 'A')
+
+export_png('figures/prism_model.png', prism_model)
+```
+
+```{r Recovering Lost Climate Data, include=FALSE}
+# defining a new dataframe for daily average VPD and renaming columns
+atmosphere_dailyavg_vpd = prism_UTC_merge
+names(atmosphere_dailyavg_vpd)[names(atmosphere_dailyavg_vpd) == 'mean'] <- 'EZlog_vpdmean'
+names(atmosphere_dailyavg_vpd)[names(atmosphere_dailyavg_vpd) == 'sd'] <- 'EZlog_vpd_sd'
+names(atmosphere_dailyavg_vpd)[names(atmosphere_dailyavg_vpd) == 'n'] <- 'EZlog_vpd_n'
+atmosphere_dailyavg_vpd$variable = NULL
+atmosphere_dailyavg_vpd$median = NULL
+atmosphere_dailyavg_vpd$q1 = NULL
+atmosphere_dailyavg_vpd$q3 = NULL
+atmosphere_dailyavg_vpd$iqr = NULL
+atmosphere_dailyavg_vpd$mad = NULL
+atmosphere_dailyavg_vpd$se = NULL
+atmosphere_dailyavg_vpd$ci = NULL
+
+# defining a new dataframe for daily average temperatures and renaming columns
+atmosphere_dailyavg_temp = prism_UTC_temp_merge
+names(atmosphere_dailyavg_temp)[names(atmosphere_dailyavg_temp) == 'mean'] <- 'EZlog_tmean'
+names(atmosphere_dailyavg_temp)[names(atmosphere_dailyavg_temp) == 'sd'] <- 'EZlog_t_sd'
+names(atmosphere_dailyavg_temp)[names(atmosphere_dailyavg_temp) == 'n'] <- 'EZlog_t_n'
+atmosphere_dailyavg_temp$variable = NULL
+atmosphere_dailyavg_temp$median = NULL
+atmosphere_dailyavg_temp$q1 = NULL
+atmosphere_dailyavg_temp$q3 = NULL
+atmosphere_dailyavg_temp$iqr = NULL
+atmosphere_dailyavg_temp$mad = NULL
+atmosphere_dailyavg_temp$se = NULL
+atmosphere_dailyavg_temp$ci = NULL
+
+# merging daily average atmospheric measurements into a new dataframe
+atmosphere_dailyavg = merge(atmosphere_dailyavg_vpd, atmosphere_dailyavg_temp, by = c('Date', 'ppt..mm.','tmin..degrees.C.','tmean..degrees.C.','tmax..degrees.C.','tdmean..degrees.C.','vpdmin..hPa.','vpdmax..hPa.','Comments','PRISM_Date'))
+
+# renaming date columns. PST is 20 hours behind PRISM time.
+atmosphere_dailyavg$PRISM_Date = NULL
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'Date'] <- 'PRISM_Date'
+#atmosphere_dailyavg$PRISM_Date = as_date(atmosphere_dailyavg$PRISM_Date)
+atmosphere_dailyavg$Date = atmosphere_dailyavg$PRISM_Date - day(1)
+
+# renaming columns to specify PRISM data sources
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'ppt..mm.'] <- 'PRISM_ppt_mm'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'tmin..degrees.C.'] <- 'PRISM_tmin_C'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'tmean..degrees.C.'] <- 'PRISM_tmean_C'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'tmax..degrees.C.'] <- 'PRISM_tmax_C'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'tdmean..degrees.C.'] <- 'PRISM_tdmean_C'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'vpdmin..hPa.'] <- 'PRISM_vpdmin_hPa'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'vpdmax..hPa.'] <- 'PRISM_vpdmax_hPa'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'vpdmin..kPa.'] <- 'PRISM_vpdmin_kPa'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'vpdmean..kPa.'] <- 'PRISM_vpdmean_kPa'
+names(atmosphere_dailyavg)[names(atmosphere_dailyavg) == 'vpdmax..kPa.'] <- 'PRISM_vpdmax_kPa'
+
+# defining new columns for concatenating different data sources
+atmosphere_dailyavg$vpdmin_kPa = atmosphere_dailyavg$EZlog_vpdmin
+atmosphere_dailyavg$vpdmean_kPa = atmosphere_dailyavg$EZlog_vpdmean
+atmosphere_dailyavg$vpdmax_kPa = atmosphere_dailyavg$EZlog_vpdmax
+atmosphere_dailyavg$tmin_C = atmosphere_dailyavg$EZlog_tmin
+atmosphere_dailyavg$tmean_C = atmosphere_dailyavg$EZlog_tmean
+atmosphere_dailyavg$tmax_C = atmosphere_dailyavg$EZlog_tmax
+atmosphere_dailyavg$data_source = atmosphere_dailyavg$Comments
+atmosphere_dailyavg$location = 'Mount Diablo'
+
+# filling in null EZ log values with values from the climate models developed with PRISM data.
+# I ended up using the second model for the VPD minimum values. Which model is used can be adjusted with the 'model' variable in the for loop.
+for (i in (seq_len(nrow(atmosphere_dailyavg)))) {
+  compiled = atmosphere_dailyavg[i,c("vpdmin_kPa","vpdmean_kPa","vpdmax_kPa","tmin_C","tmean_C","tmax_C")]
+  model = atmosphere_dailyavg[i,c("model2_vpdmin","model_vpdmean","model_vpdmax","model_tmin","model_tmean","model_tmax")]
+  #data_source = atmosphere_dailyavg[i,42]
+  if (is.na(compiled[1,1]) == TRUE) {
+    atmosphere_dailyavg[i,c("vpdmin_kPa","vpdmean_kPa","vpdmax_kPa","tmin_C","tmean_C","tmax_C")] = model
+    atmosphere_dailyavg$data_source[i] = 'PRISM climate model'
+  } else {
+      atmosphere_dailyavg$data_source[i] = 'On-site sensor'
+    }
+}
+```
+
+#### Greenhouse Climate Analysis
+
+```{r Greenhouse Temp and VPD, include=FALSE}
+# Field data was represented as daily mean, max and min. 
+# For consistency, I believe it would be best to represent greenhouse data the same way.
+
+atmosphere_gh$VPD = vpd(atmosphere_gh$Humidity..rh.,atmosphere_gh$Celsius.C.)
+
+atmosphere_gh_dailyavg_temp <- atmosphere_gh %>%
+  group_by(Date) %>%
+  get_summary_stats(Celsius.C., type = "full")
+
+atmosphere_gh_dailyavg_vpd <- atmosphere_gh %>%
+  group_by(Date) %>%
+  get_summary_stats(VPD, type = "full")
+
+# renaming columns
+names(atmosphere_gh_dailyavg_vpd)[names(atmosphere_gh_dailyavg_vpd) == 'mean'] <- 'EZlog_vpdmean'
+names(atmosphere_gh_dailyavg_vpd)[names(atmosphere_gh_dailyavg_vpd) == 'sd'] <- 'EZlog_vpd_sd'
+names(atmosphere_gh_dailyavg_vpd)[names(atmosphere_gh_dailyavg_vpd) == 'n'] <- 'EZlog_vpd_n'
+names(atmosphere_gh_dailyavg_vpd)[names(atmosphere_gh_dailyavg_vpd) == 'min'] <- 'EZlog_vpdmin'
+names(atmosphere_gh_dailyavg_vpd)[names(atmosphere_gh_dailyavg_vpd) == 'max'] <- 'EZlog_vpdmax'
+atmosphere_gh_dailyavg_vpd$variable = NULL
+atmosphere_gh_dailyavg_vpd$median = NULL
+atmosphere_gh_dailyavg_vpd$q1 = NULL
+atmosphere_gh_dailyavg_vpd$q3 = NULL
+atmosphere_gh_dailyavg_vpd$iqr = NULL
+atmosphere_gh_dailyavg_vpd$mad = NULL
+atmosphere_gh_dailyavg_vpd$se = NULL
+atmosphere_gh_dailyavg_vpd$ci = NULL
+
+# renaming columns
+names(atmosphere_gh_dailyavg_temp)[names(atmosphere_gh_dailyavg_temp) == 'mean'] <- 'EZlog_tmean'
+names(atmosphere_gh_dailyavg_temp)[names(atmosphere_gh_dailyavg_temp) == 'sd'] <- 'EZlog_t_sd'
+names(atmosphere_gh_dailyavg_temp)[names(atmosphere_gh_dailyavg_temp) == 'n'] <- 'EZlog_t_n'
+names(atmosphere_gh_dailyavg_temp)[names(atmosphere_gh_dailyavg_temp) == 'min'] <- 'EZlog_tmin'
+names(atmosphere_gh_dailyavg_temp)[names(atmosphere_gh_dailyavg_temp) == 'max'] <- 'EZlog_tmax'
+atmosphere_gh_dailyavg_temp$variable = NULL
+atmosphere_gh_dailyavg_temp$median = NULL
+atmosphere_gh_dailyavg_temp$q1 = NULL
+atmosphere_gh_dailyavg_temp$q3 = NULL
+atmosphere_gh_dailyavg_temp$iqr = NULL
+atmosphere_gh_dailyavg_temp$mad = NULL
+atmosphere_gh_dailyavg_temp$se = NULL
+atmosphere_gh_dailyavg_temp$ci = NULL
+
+atmosphere_gh_dailyavg = merge(atmosphere_gh_dailyavg_vpd, atmosphere_gh_dailyavg_temp, by = 'Date')
+
+# defining new columns for concatenating different data sources
+atmosphere_gh_dailyavg$vpdmin_kPa = atmosphere_gh_dailyavg$EZlog_vpdmin
+atmosphere_gh_dailyavg$vpdmean_kPa = atmosphere_gh_dailyavg$EZlog_vpdmean
+atmosphere_gh_dailyavg$vpdmax_kPa = atmosphere_gh_dailyavg$EZlog_vpdmax
+atmosphere_gh_dailyavg$tmin_C = atmosphere_gh_dailyavg$EZlog_tmin
+atmosphere_gh_dailyavg$tmean_C = atmosphere_gh_dailyavg$EZlog_tmean
+atmosphere_gh_dailyavg$tmax_C = atmosphere_gh_dailyavg$EZlog_tmax
+atmosphere_gh_dailyavg$data_source = 'On-site sensor'
+atmosphere_gh_dailyavg$location = 'SFSU Greenhouse'
+```
+
+```{r Processed Climate Data Output, include=FALSE}
+atmosphere_MtDiablo_dailyavg = atmosphere_dailyavg[ , c('Date','EZlog_vpd_n','EZlog_vpdmin','EZlog_vpdmean','EZlog_vpdmax','EZlog_vpd_sd','EZlog_t_n','EZlog_tmin','EZlog_tmean','EZlog_tmax','EZlog_t_sd','vpdmin_kPa','vpdmean_kPa','vpdmax_kPa','tmin_C','tmean_C','tmax_C','data_source','location')]
+
+atmosphere_dailyavg_output = rbind(atmosphere_MtDiablo_dailyavg, atmosphere_gh_dailyavg)
+```
+
+```{r Climate Averages}
+# making the month column
+atmosphere_dailyavg_output$month = month(atmosphere_dailyavg_output$Date, label = TRUE)
+monthly_climate_averages = atmosphere_dailyavg_output %>% 
+  group_by(month) %>%
+  get_summary_stats(tmax_C, tmean_C, tmin_C, vpdmax_kPa, vpdmean_kPa, vpdmin_kPa, type = "mean_sd")
+
+print(monthly_climate_averages, n = 66)
+
+print('Greenhouse mean air temperature')
+mean(atmosphere_gh_dailyavg$tmean_C)
+print('Greenhouse air temperature standard deviation')
+sd(atmosphere_gh_dailyavg$tmean_C)
+
+print('Greenhouse average VPD')
+mean(atmosphere_gh_dailyavg$vpdmean_kPa)
+print('Greenhouse VPD standard deviation')
+sd(atmosphere_gh_dailyavg$vpdmean_kPa)
+```
+
+#### Climate Line Graphs
+
+```{r Climate Line Graphs, warning=FALSE}
+AB_annotations <- data.frame(label = c("A", "B"),  # Create data for text
+                        location = c("Mount Diablo", "SFSU Greenhouse"),
+                        x = c('2025-02-14', '2025-09-12'),
+                        y = c(8, 8))
+
+AB_annotations$x = as.Date(AB_annotations$x, "%Y-%m-%d")
+
+p5 = ggplot(atmosphere_dailyavg_output, aes(x=Date, y=EZlog_vpdmean)) + 
+  geom_ribbon(aes(ymin = vpdmin_kPa, ymax = vpdmax_kPa), fill = "lightblue") +
+  geom_line() +
+  geom_line(aes(x=Date,y=vpdmean_kPa), linetype = '11', color = 'darkblue'
+            ) +
+  labs(y = 'VPD (kPa)', x = NULL) +
+  facet_wrap(~location, scales = 'free_x', axes = 'all') +
+  geom_text(data = AB_annotations,
+          mapping = aes(x = -Inf,
+                        y = Inf,
+                        hjust   = -0.5,
+                        vjust   = 1,
+                        label = label)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown(),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 12)
+        ) +
+  scale_x_date(expand = expansion(mult = 0))
+
+CD_annotations <- data.frame(label = c("C", "D"),  # Create data for text
+                        location = c("Mount Diablo", "SFSU Greenhouse"),
+                        x = c('2025-02-14', '2025-09-12'),
+                        y = c(45, 45))
+
+CD_annotations$x = as.Date(AB_annotations$x, "%Y-%m-%d")
+
+p6 = ggplot(atmosphere_dailyavg_output, aes(x=Date, y=EZlog_tmean)) + 
+  geom_ribbon(aes(ymin = tmin_C, ymax = tmax_C), fill = "orange") +
+  geom_line() +
+  geom_line(aes(x=Date,y=tmean_C), linetype = '11', color = 'darkred'
+            ) +
+  labs(y = 'Air temperature (°C)') +
+  facet_wrap(~location, scales = 'free_x', axes = 'all') +
+  geom_text(data = CD_annotations,
+          mapping = aes(x = -Inf,
+                        y = Inf,
+                        hjust   = -0.5,
+                        vjust   = 1,
+                        label = label)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown(),
+        strip.background = element_blank(),
+        strip.text = element_blank()
+        ) +
+  scale_x_date(expand = expansion(mult = 0))
+
+climate_linegraphs = p5 / p6 #+ plot_annotation(tag_levels = "a")
+
+export_png('figures/climate_linegraphs.png', climate_linegraphs)
+```
+
+#### Petal Area and Climate Scatterplot
+
+```{r Petal Size and Climate Linear Model, include=FALSE}
+# make petal mean into individual observations
+
+petal_mean <- petal %>%
+  group_by(Date) %>%
+  get_summary_stats(p_projectedArea, type = "mean_sd")
+
+Wmass_mean <- petal %>%
+  group_by(Date) %>%
+  get_summary_stats(p_waterMass, type = "mean_sd")
+
+climate_normals10 = climatenorm(atmosphere_dailyavg, 10)
+
+# swap in a merge here using the climatenorm function output
+petal_climate10 = merge(petal_mean, climate_normals10, all.y = TRUE, by = c("Date"))
+Wmass_climate10 = merge(Wmass_mean, climate_normals10, all.y = TRUE, by = c("Date"))
+
+petal_climate10_model_input = merge(petal_MtDiablo, climate_normals10, all.y = TRUE, by = c("Date"))
+
+petal_climate10_model_input$vpdmax_10daymean_kPa = as.numeric(petal_climate10_model_input$vpdmax_10daymean_kPa)
+
+# log transforming for 10 day climate normal data 
+petal_climate10_model_input$log_vpdmax_10daymean_kPa = log10(petal_climate10_model_input$vpdmax_10daymean_kPa)
+
+petal_climate10_model_input$log_p_projectedArea = log10(petal_climate10_model_input$p_projectedArea)
+
+petal_climate10_model_input$log_p_waterMass = log10(petal_climate10_model_input$p_waterMass)
+
+# linear models
+VPD_petal_lm = lm(log_p_projectedArea~log_vpdmax_10daymean_kPa, data=petal_climate10_model_input)
+
+VPD_Wmass_lm = lm(log_p_waterMass~log_vpdmax_10daymean_kPa, data=petal_climate10_model_input)
+```
+
+```{r}
+print("VPD and petal area linear regression")
+summary(VPD_petal_lm)
+
+# extracting coefficients and r-squared
+VPD_petal_R2 = round(rsq(VPD_petal_lm), 2)
+VPD_petal_coeff = VPD_petal_lm$coefficients
+VPD_petal_slope = round(as.numeric(VPD_petal_coeff[2]),2)
+VPD_petal_intercept = round(as.numeric(VPD_petal_coeff[1]),2)
+
+print("VPD and petal absolute water content linear regression")
+summary(VPD_Wmass_lm)
+
+# extracting coefficients and r-squared
+VPD_Wmass_R2 = round(rsq(VPD_Wmass_lm), 2)
+VPD_Wmass_coeff = VPD_Wmass_lm$coefficients
+VPD_Wmass_slope = round(as.numeric(VPD_Wmass_coeff[2]),2)
+VPD_Wmass_intercept = round(as.numeric(VPD_Wmass_coeff[1]),2)
+```
+
+```{r include=FALSE}
+# call the predict function with the log-log model, and log transformed x values.
+VPD_predict_log_p_projectedArea_MtD = predict.lm(VPD_petal_lm, petal_climate10_model_input, interval = 'confidence')
+petal_climate10_model_input = cbind(petal_climate10_model_input, VPD_predict_log_p_projectedArea_MtD)
+names(petal_climate10_model_input)[names(petal_climate10_model_input) == 'fit'] <- 'log_p_projectedArea_fit'
+names(petal_climate10_model_input)[names(petal_climate10_model_input) == 'lwr'] <- 'log_p_projectedArea_lwr'
+names(petal_climate10_model_input)[names(petal_climate10_model_input) == 'upr'] <- 'log_p_projectedArea_upr'
+
+# do the same as above for Wmass
+VPD_predict_log_p_waterMass_MtD = predict.lm(VPD_Wmass_lm, petal_climate10_model_input, interval = 'confidence')
+petal_climate10_model_input = cbind(petal_climate10_model_input, VPD_predict_log_p_waterMass_MtD)
+names(petal_climate10_model_input)[names(petal_climate10_model_input) == 'fit'] <- 'log_p_waterMass_fit'
+names(petal_climate10_model_input)[names(petal_climate10_model_input) == 'lwr'] <- 'log_p_waterMass_lwr'
+names(petal_climate10_model_input)[names(petal_climate10_model_input) == 'upr'] <- 'log_p_waterMass_upr'
+
+# make a new column that takes the anti log of the predicted values and confidence intervals
+petal_climate10_model_input$p_projectedArea_fit = 10^(petal_climate10_model_input$log_p_projectedArea_fit)
+petal_climate10_model_input$p_projectedArea_lwr = 10^(petal_climate10_model_input$log_p_projectedArea_lwr)
+petal_climate10_model_input$p_projectedArea_upr = 10^(petal_climate10_model_input$log_p_projectedArea_upr)
+
+# do the same as above for Wmass
+petal_climate10_model_input$p_waterMass_fit = 10^(petal_climate10_model_input$log_p_waterMass_fit)
+petal_climate10_model_input$p_waterMass_lwr = 10^(petal_climate10_model_input$log_p_waterMass_lwr)
+petal_climate10_model_input$p_waterMass_upr = 10^(petal_climate10_model_input$log_p_waterMass_upr)
+```
+
+```{r include=FALSE}
+# data frame subsets that contains predicted values
+VPD_predict_petal <- petal_climate10_model_input[ , c('Date', 'p_projectedArea_fit', 'p_projectedArea_lwr', 'p_projectedArea_upr')] %>%
+  distinct(.keep_all = TRUE)
+
+VPD_predict_Wmass <- petal_climate10_model_input[ , c('Date', 'p_waterMass_fit', 'p_waterMass_lwr', 'p_waterMass_upr')] %>%
+  distinct(.keep_all = TRUE)
+```
+
+```{r include=FALSE}
+# merge data frames
+petal_climate10 = merge(petal_climate10, VPD_predict_petal, all.y = TRUE, by = c("Date"))
+
+Wmass_climate10 = merge(Wmass_climate10, VPD_predict_Wmass, all.y = TRUE, by = c("Date"))
+```
+
+```{r include=FALSE}
+# filter predicted values outside of the data set range
+petal_climate10 = filter(petal_climate10, as.numeric(vpdmax_10daymean_kPa)>1.366 & as.numeric(vpdmax_10daymean_kPa)<=5.492)
+
+Wmass_climate10 = filter(Wmass_climate10, as.numeric(vpdmax_10daymean_kPa)>1.366 & as.numeric(vpdmax_10daymean_kPa)<=5.492)
+```
+
+```{r Petal Surface Area and Climate Scatterplot}
+# ugh. The as.numeric function needs to be called *before* the variables are fed into the ggplot functions.
+# but on all the variables?? where the heck did this go wrong.
+
+p13 = ggplot(petal_climate10, aes(x = as.numeric(vpdmax_10daymean_kPa), y = as.numeric(mean))) +
+  geom_point() +
+  #geom_smooth(method="lm",se=TRUE,formula= (y ~ log(x))) +
+  #geom_smooth(method="lm",se=TRUE,formula= (y ~ x)) +
+  geom_line(
+    aes(x = as.numeric(vpdmax_10daymean_kPa), 
+        y = as.numeric(p_projectedArea_fit)
+        ),
+    #method="lm",se=FALSE,formula= (y ~ log(x)),
+    linewidth = 1, color = 'blue', show.legend = FALSE) +
+  geom_ribbon(
+    aes(x = as.numeric(vpdmax_10daymean_kPa), 
+        ymin = as.numeric(p_projectedArea_lwr), 
+        ymax = as.numeric(p_projectedArea_upr)
+    ),
+    alpha = 0.2, show.legend = FALSE) +
+  geom_errorbar(aes(ymin = as.numeric(mean) - as.numeric(sd),ymax = as.numeric(mean) + as.numeric(sd))) +
+  geom_errorbarh(aes(xmin = as.numeric(vpdmax_10daymean_kPa) - as.numeric(vpdmax_10daysd_kPa), xmax = as.numeric(vpdmax_10daymean_kPa) + as.numeric(vpdmax_10daysd_kPa))) +
+  scale_y_continuous(n.breaks = 6) +
+  scale_x_continuous(breaks = c(1,3,5,7)) +
+  #ylim(NA,16) +
+  #xlim(NA,8) +
+  labs(y = "<i>A<sub>petal</sub></i> (cm<sup>2</sup>)", x = NULL) +
+  geom_richtext(aes(x = 5, y = 15), 
+                label = glue("<i>r</i><sup>2</sup> = {VPD_petal_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(
+                x = 5, y = 13.5, 
+                label = glue("<i>A<sub>petal</sub></i> = VPD<sub>max</sub><sup>{VPD_petal_slope}</sup> ∙ 10<sup>{VPD_petal_intercept}</sup>"), 
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown()
+        )
+
+p14 = ggplot(Wmass_climate10, aes(x = as.numeric(vpdmax_10daymean_kPa), y = as.numeric(mean))) +
+  geom_point() +
+  #geom_smooth(method="lm",se=TRUE,formula= (y ~ log(x))) +
+  #geom_smooth(method="lm",se=TRUE,formula= (y ~ x)) +
+  geom_line(
+    aes(x = as.numeric(vpdmax_10daymean_kPa), 
+        y = as.numeric(p_waterMass_fit)
+        ),
+    #method="lm",se=FALSE,formula= (y ~ log(x)),
+    linewidth = 1, color = 'blue', show.legend = FALSE) +
+  geom_ribbon(
+    aes(x = as.numeric(vpdmax_10daymean_kPa), 
+        ymin = as.numeric(p_waterMass_lwr), 
+        ymax = as.numeric(p_waterMass_upr)
+    ),
+    alpha = 0.2, show.legend = FALSE) +
+  geom_errorbar(aes(ymin = as.numeric(mean) - as.numeric(sd),ymax = as.numeric(mean) + as.numeric(sd))) +
+  geom_errorbarh(aes(xmin = as.numeric(vpdmax_10daymean_kPa) - as.numeric(vpdmax_10daysd_kPa), xmax = as.numeric(vpdmax_10daymean_kPa) + as.numeric(vpdmax_10daysd_kPa))) +
+  scale_y_continuous(n.breaks = 6) +
+  scale_x_continuous(breaks = c(1,3,5,7)) +
+  #ylim(NA,16) +
+  #xlim(NA,8) +
+  labs(y = "<i>W<sub>absolute</sub></i> (mg)", x = "10-day mean VPD<sub>max</sub> (kPa)") +
+  geom_richtext(aes(x = 5, y = 125), 
+                label = glue("<i>r</i><sup>2</sup> = {VPD_Wmass_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  geom_richtext(
+                x = 5, y = 112.5, 
+                label = glue("<i>W<sub>absolute</sub></i> = VPD<sub>max</sub><sup>{VPD_Wmass_slope}</sup> ∙ 10<sup>{VPD_Wmass_intercept}</sup>"), 
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown()
+        )
+
+petal_vpd_scatter = (p13 / p14) + plot_annotation(tag_levels = 'A')
+
+export_png2('figures/petal_vpd_scatter.png', petal_vpd_scatter)
+```
+
+### Porometer
+
+```{r Filtering Porometer Data}
+# filtering out empty chamber measurements
+porometer = filter(porometer_noise,location!='B')
+
+# filtering out noise
+#porometer = filter(porometer_noise,gsw<0.025)
+nrow(porometer)
+nrow(filter(porometer, gsw < 0))
+porometer$gsw = replace(porometer$gsw, porometer$gsw < 0, 0)
+
+#mean(porometer_noise$gsw)
+mean(porometer_noise$gsw)
+
+ggplot(porometer_noise,aes(x=gsw)) + 
+  geom_histogram(binwidth = 0.001)
+
+ggplot(porometer,aes(x=gsw)) + 
+  geom_histogram(binwidth = 0.001)
+
+ggplot(porometer,aes(x=(Tleaf - Tref), y = E_apparent)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=TRUE, formula = (y ~ x))
+```
+
+```{r Calculating Total gs}
+# formatting the dates consistently
+porometer <- porometer %>% 
+  mutate(Date = parse_date_time(Date, 
+orders = c("mdy", "Ymd")))
+
+# filter porometer by petal side
+gsw_ab = filter(porometer,Petal.side=="bottom")
+colnames(gsw_ab)[7] <- 'gsw_bottom'
+nrow(gsw_ab)
+gsw_ad = filter(porometer,Petal.side=="top")
+colnames(gsw_ad)[7] <- 'gsw_top'
+nrow(gsw_ad)
+
+# merging the top and bottom petal gsw to get total surface conductance
+# used the time stamp for the abaxial measurement, since it was usually taken first.
+gsw_ab_select = gsw_ab %>% select('Time', 'Date', 'remark', 'Sample', 'location', 'gsw_bottom', 'Tref', 'plant')
+gsw_ad_select = gsw_ad %>% select('Date', 'remark', 'Sample', 'gsw_top', 'plant')
+porometer_gsw_total = NULL
+porometer_gsw_total = merge(gsw_ab_select, gsw_ad_select, by = c("Date","remark","Sample","plant"))
+porometer_gsw_total = porometer_gsw_total %>% mutate(gswTotal = gsw_bottom + gsw_top)
+
+nrow(porometer_gsw_total)
+nrow(filter(porometer_gsw_total, gsw_bottom < 0))
+nrow(filter(porometer_gsw_total, gsw_top < 0))
+
+# porometer timestamp is in pacific standard time, never updated to daylight savings. 
+# Other than that consideration, porometer measurements were only a few minutes ahead from my phone clock if I recall. No further adjustments are necessary.
+
+# converting date and time columns into a datetime column
+porometer_gsw_total$Datetime = ymd_hms(paste(porometer_gsw_total$Date, porometer_gsw_total$Time))
+
+# filtering out zero values and values greater than 0.025 mol per meter squared per second.
+before_outliers = nrow(porometer_gsw_total)
+porometer_gsw_total = filter(porometer_gsw_total,gswTotal<0.025)
+after_outliers1 = nrow(porometer_gsw_total)
+porometer_gsw_total = filter(porometer_gsw_total,gswTotal!=0)
+after_outliers2 = nrow(porometer_gsw_total)
+
+# separating greenhouse measurements from field measurments
+porometer_gsw_total_gh = filter(porometer_gsw_total,location=='SFSU greenhouse')
+porometer_gsw_total = filter(porometer_gsw_total,location=='Mount Diablo')
+
+mean(porometer_gsw_total$gswTotal)
+sd(porometer_gsw_total$gswTotal)
+median(porometer_gsw_total$gswTotal)
+
+titleFig3 <- expression(paste("Histogram of total surface conductance for 491 ", italic("Eschscholzia californica"), " petals"))
+
+ggplot(porometer_gsw_total,aes(x=gswTotal)) + 
+  geom_histogram(binwidth = 0.001) +
+  labs(title = 'Figure 3', subtitle = titleFig3, x = "Total petal surface conductance", y = "Count") #+
+  #lims(x = c(0, 0.05))
+```
+
+#### Greenhouse Surface Conductance and Ontogeny
+
+```{r Calculating Mean Greenhouse gs Values, include=FALSE}
+ggplot(porometer_gsw_total_gh,aes(x=gswTotal)) + 
+  geom_histogram(binwidth = 0.001)
+
+# converting from mols to mmols
+porometer_gsw_total_gh$gswTotal_mmols = porometer_gsw_total_gh$gswTotal*1000
+gs_mean_gh = round(mean(porometer_gsw_total_gh$gswTotal_mmols),2)
+gs_sd_gh = round(sd(porometer_gsw_total_gh$gswTotal_mmols),2)
+
+porometer_gsw_total_gh_means <- porometer_gsw_total_gh %>%
+  group_by(plant, Date) %>%
+  get_summary_stats(gswTotal_mmols, type = "mean_sd")
+
+# renaming columns
+names(porometer_gsw_total_gh_means)[names(porometer_gsw_total_gh_means) == 'n'] <- 'gswTotal_n'
+names(porometer_gsw_total_gh_means)[names(porometer_gsw_total_gh_means) == 'mean'] <- 'gswTotal_mean'
+names(porometer_gsw_total_gh_means)[names(porometer_gsw_total_gh_means) == 'sd'] <- 'gswTotal_sd'
+
+# converting from millimols to mols
+porometer_gsw_total_gh_means$gswTotal_mean = porometer_gsw_total_gh_means$gswTotal_mean/1000
+porometer_gsw_total_gh_means$gswTotal_sd = porometer_gsw_total_gh_means$gswTotal_sd/1000
+
+# removing extra column
+porometer_gsw_total_gh_means$variable = NULL
+```
+
+```{r Merge Greenhouse Petals and Surface Conductance, include=FALSE}
+petal_gsw_gh = merge(petal_gh, porometer_gsw_total_gh_means, by = c("Date", "plant"))
+```
+
+```{r}
+# Linear mixed effects model
+gsw_gh_lme_model <- lmer(gswTotal_mean ~ week_of_flowering + (1 | plant), data = petal_gsw_gh)
+
+# Summary of the model
+print("Greenhouse surface conductance linear mixed effects model")
+summary(gsw_gh_lme_model)
+print("Analysis of variance")
+anova(gsw_gh_lme_model)
+```
+```{r include=FALSE}
+# extracting residuals
+gsw_gh_lme_residuals = residuals(gsw_gh_lme_model)
+gsw_gh_lme_residuals_df = as.data.frame(gsw_gh_lme_residuals)
+
+# histogram of model residuals
+ggplot(gsw_gh_lme_residuals_df,aes(gsw_gh_lme_residuals)) +
+  geom_histogram(binwidth = 0.0005)
+```
+```{r}
+# fitted vs. residuals
+plot(gsw_gh_lme_model)
+
+# q-q plot
+qqnorm(petal_gsw_gh$gswTotal_mean)
+qqline(petal_gsw_gh$gswTotal_mean)
+
+# shapiro test
+shapiro.test(gsw_gh_lme_residuals)
+```
+
+```{r}
+print('Mean total gs at SFSU greenhouse')
+mean(porometer_gsw_total_gh$gswTotal)
+print('Total gs standard deviation at SFSU greenhouse')
+sd(porometer_gsw_total_gh$gswTotal)
+```
+
+#### Mount Diablo Surface Conductance over Time
+
+```{r Mount Diablo gs Scatterplot, include=FALSE}
+flaggedPlants = c("#1","#2","#3","#4","#5","#6","#7","#8","#9","#10","#11","#12","#13","#14","#15","#16","#17","#18","#19","#20","#42","#43","#44","#45","#46","#47","#48","#49","#50","#51","#52","#53")
+
+porometer_gsw_total$repeatMeasurement = c('')
+
+# marking repeat measurments
+for (i in (seq_len(nrow(porometer_gsw_total)))) {
+  if (porometer_gsw_total$plant[i] %in% flaggedPlants) {
+    porometer_gsw_total$repeatMeasurement[i] = 'yes'
+  } else {
+    porometer_gsw_total$repeatMeasurement[i] = 'no'
+  }
+}
+```
+
+```{r include=FALSE}
+# extracting petal sampling weeks
+weeks_MtDiablo = petal_MtDiablo[ , c('Date', 'week')] %>%
+  distinct(.keep_all = TRUE)
+
+# defining sampling weeks missing from the petal collection data frame
+missing_Dates <- c('4/8/2025', '4/22/2025', '6/17/2025')
+missing_Dates = as.Date(missing_Dates, "%m/%d/%Y")
+class(missing_Dates)
+missing_weeks <- c(7, 9, 17)
+missing_weeks_MtDiablo <- data.frame(Date = missing_Dates, week = missing_weeks)
+
+# combining to get a data frame that contains every week I visited Mount Diablo
+weeks_MtDiablo = rbind(weeks_MtDiablo, missing_weeks_MtDiablo) %>% 
+  arrange(week)
+```
+
+```{r include=FALSE}
+# merging week data frame with the porometer data frame by the Date key
+porometer_gsw_total$Date = as.Date(porometer_gsw_total$Date, "%m/%d/%Y")
+
+porometer_gsw_total = merge(porometer_gsw_total, weeks_MtDiablo, by = c('Date'))
+```
+
+```{r}
+# changing units to mmol
+porometer_gsw_total$gswTotal_mmol = porometer_gsw_total$gswTotal*1000
+
+print("Mount Diablo surface conductance linear regression")
+summary(lm(gswTotal_mmol~week, data = porometer_gsw_total))
+
+print('Mean total gs at Mount Diablo')
+gs_mean_MtD = round(mean(porometer_gsw_total$gswTotal_mmol),2)
+print('Total gs standard deviation at Mount Diablo')
+gs_sd_MtD = round(sd(porometer_gsw_total$gswTotal_mmol),2)
+```
+
+```{r}
+porometer_gsw_total_repeat = filter(porometer_gsw_total, repeatMeasurement == 'yes')
+porometer_gsw_total_norepeat = filter(porometer_gsw_total, repeatMeasurement == 'no')
+```
+
+```{r}
+gs_repeat_lme = lmer(gswTotal_mmol ~ week + (1 | plant), data = porometer_gsw_total_repeat)
+gs_norepeat_lm = lm(gswTotal_mmol~week, data = porometer_gsw_total_norepeat)
+
+summary(gs_repeat_lme)
+summary(gs_norepeat_lm)
+
+gs_repeat_mean = round(mean(porometer_gsw_total_repeat$gswTotal_mmol),2)
+gs_repeat_sd = round(sd(porometer_gsw_total_repeat$gswTotal_mmol),2)
+gs_norepeat_mean = round(mean(porometer_gsw_total_norepeat$gswTotal_mmol),2)
+gs_norepeat_sd = round(sd(porometer_gsw_total_norepeat$gswTotal_mmol),2)
+```
+
+```{r include=FALSE}
+porometer_aov <- aov(gswTotal~factor(Date),data=porometer_gsw_total)
+summary(porometer_aov)
+t_porometer <- TukeyHSD(porometer_aov)
+t_porometer
+```
+
+#### Modeling Midday Water Loss
+
+```{r Calculating Mean Midday Temp and VPD, include=FALSE}
+# initializing an empty data frame
+midday_climate <- data.frame(matrix(ncol = 5, nrow = 0))
+colnames(midday_climate) <- c('Date', 'mean_midday_temp', 'mean_midday_rh', 'mean_midday_dew', 'mean_midday_VPD')
+
+#initializing a list of datetimes
+midday_datekey = list()
+
+# picking out the sampling dates with midday data
+for (i in (seq_len(nrow(atmosphere_noDST)))) {
+  my_datetime = atmosphere_noDST[i,1]
+  time = atmosphere_noDST[i,9]
+  if (time < hms::as_hms(41400) & time >= hms::as_hms(39600)) {
+    datepick = list(my_datetime)
+    midday_datekey = c(midday_datekey, datepick)
+    }
+}
+
+# calculate midday climate and add it to the empty dataframe
+for (datetime in midday_datekey) {
+  my_day = as_date(datetime)
+  my_day_string = as.character(my_day)
+  datetime_plus1.5hr = datetime + hours(1) + minutes(30)
+  midday_window = atmosphere_noDST[atmosphere_noDST$Time >= datetime & atmosphere_noDST$Time <= datetime_plus1.5hr,]
+  midday_climate[nrow(midday_climate) + 1,] = c(my_day_string,mean(midday_window$Celsius.C.),mean(midday_window$Humidity..rh.),mean(midday_window$Dew.Point.C.),mean(midday_window$VPD))
+}
+
+midday_climate$Date = as_date(midday_climate$Date)
+
+# can I recover 3/25 and 4/15 by modeling prior day midday VPD?
+midday_climate_March24 = filter(midday_climate, Date == "2025-03-24")
+midday_climate_April14 = filter(midday_climate, Date == "2025-04-14")
+midday_climate_priorDay = rbind(midday_climate_March24, midday_climate_April14)
+midday_climate_priorDay$priorDay = 'yes'
+midday_climate_priorDay$Date = midday_climate_priorDay$Date + day(1)
+midday_climate$priorDay = 'no'
+
+midday_climate = rbind(midday_climate, midday_climate_priorDay)
+midday_climate
+```
+
+```{r Modeling Midday Water Loss, include=FALSE}
+# Merging Mount Diablo gs Observations with their Petals
+petal_complete = merge(petal_MtDiablo, porometer_gsw_total, by = c("Date", "week", "plant", "location"), all.x = TRUE)
+
+petal_complete$Date = as_date(petal_complete$Date)
+petal_complete_midday_climate = merge(petal_complete, midday_climate, by = c("Date"), all.x = TRUE)
+
+petal_complete_midday_climate$mean_midday_VPD = as.numeric(petal_complete_midday_climate$mean_midday_VPD)
+petal_complete_midday_climate$mean_midday_temp = as.numeric(petal_complete_midday_climate$mean_midday_temp)
+
+# calling the evaporation function. Multiplying projected area by 4 for whole flower waterloss.
+petal_complete_midday_climate$evaporation = evaporation(petal_complete_midday_climate$gswTotal, (petal_complete_midday_climate$p_projectedArea*4), petal_complete_midday_climate$mean_midday_VPD)
+
+# calculating water loss in millimoles by multiplying evaporation by 2 hours (in seconds).
+petal_complete_midday_climate$total_midday_waterloss = petal_complete_midday_climate$evaporation * 2 * 60 * 60
+
+# converting millimoles to moles and then to grams
+petal_complete_midday_climate$total_midday_waterloss_g = ((petal_complete_midday_climate$evaporation * 2 * 60 * 60) / 1000) * 18
+
+# converting grams to milligrams
+petal_complete_midday_climate$total_midday_waterloss_mg = (petal_complete_midday_climate$total_midday_waterloss_g)*1000
+
+ggplot(petal_complete_midday_climate,aes(x=evaporation)) + 
+  geom_histogram(binwidth = 0.00001)
+```
+
+```{r include=FALSE}
+petal_complete_midday_climate$gswTotal_mmol = petal_complete_midday_climate$gswTotal*1000
+```
+
+```{r}
+ggplot(petal_complete_midday_climate, aes(x = mean_midday_VPD)) +
+  geom_histogram(binwidth = 2)
+
+waterloss_week_lm = lm(evaporation~week, data = petal_complete_midday_climate)
+print("Waterloss and Time Linear Regression")
+summary(waterloss_week_lm)
+waterloss_week_R2 = round(rsq(waterloss_week_lm),2)
+
+waterloss_vpd_lm = lm(evaporation~mean_midday_VPD, data = petal_complete_midday_climate)
+print("Waterloss and VPD Linear Regression")
+summary(waterloss_vpd_lm)
+waterloss_vpd_R2 = round(rsq(waterloss_vpd_lm),2)
+
+waterloss_area_lm = lm(evaporation~p_projectedArea, data = petal_complete_midday_climate)
+print("Waterloss and Petal Area Linear Regression")
+summary(waterloss_area_lm)
+waterloss_area_R2 = round(rsq(waterloss_area_lm),2)
+
+waterloss_area_vpd_lm = lm(evaporation~p_projectedArea + mean_midday_VPD, data = petal_complete_midday_climate)
+print("Waterloss relates to Petal Area and VPD Multiple Linear Regression")
+summary(waterloss_area_vpd_lm)
+waterloss_area_vpd_R2 = round(rsq(waterloss_area_lm),2)
+
+plot(waterloss_area_vpd_lm)
+AIC(waterloss_area_vpd_lm, waterloss_vpd_lm, waterloss_area_lm)
+```
+
+```{r include=FALSE}
+petal_complete_midday_climate = petal_complete_midday_climate %>%
+  mutate(calendar_divide = case_when(
+                            season == 'wet' | season == 'transition' ~ 'March - April',
+                            season == 'dry' ~ 'May - June'
+                            )
+         )
+petal_complete_midday_climate = petal_complete_midday_climate %>%
+  mutate(VPD_class = case_when(
+                            mean_midday_VPD < 3 ~ 'VPD < 3',
+                            mean_midday_VPD > 3 ~ 'VPD > 3'
+                            )
+         )
+petal_complete_midday_climate = petal_complete_midday_climate %>%
+  mutate(calendar_VPD = case_when(
+                            calendar_divide == 'May - June' & VPD_class == 'VPD < 3' ~ 'May - June, VPD < 3',
+                            calendar_divide == 'May - June' & VPD_class == 'VPD > 3' ~ 'May - June, VPD >',
+                            calendar_divide == 'March - April' ~ 'March - April'
+                            )
+         )
+
+waterloss_MarchApril = filter(petal_complete_midday_climate, calendar_divide == 'March - April')
+waterloss_MayJune = filter(petal_complete_midday_climate, calendar_divide == 'May - June')
+waterloss_VPDless3 = filter(petal_complete_midday_climate, VPD_class == 'VPD < 3')
+waterloss_VPDgreat3 = filter(petal_complete_midday_climate, VPD_class == 'VPD > 3')
+
+# modeling water loss at different VPD
+waterloss_VPDless3_lm = lm(log10(total_midday_waterloss_mg)~log10(p_projectedArea), data = waterloss_VPDless3)
+summary(waterloss_VPDless3_lm)
+summary(lm(total_midday_waterloss_mg~p_projectedArea, data = waterloss_VPDless3))
+
+waterloss_VPDgreat3_lm = lm(log10(total_midday_waterloss_mg)~log10(p_projectedArea), data = waterloss_VPDgreat3)
+summary(waterloss_VPDgreat3_lm)
+summary(lm(total_midday_waterloss_mg~p_projectedArea, data = waterloss_VPDgreat3))
+
+plot(waterloss_VPDless3_lm)
+plot(waterloss_VPDgreat3_lm)
+```
+
+```{r include=FALSE}
+waterloss_df1 = filter(petal_complete_midday_climate, p_projectedArea <= 16.987)
+waterloss_df1 = filter(waterloss_df1, p_projectedArea >= 1.180)
+waterloss_df2 = filter(petal_complete_midday_climate, p_projectedArea <= 12.401)
+waterloss_df2 = filter(waterloss_df2, p_projectedArea >= 1.515)
+
+waterloss_VPDless3 = log_predict(waterloss_VPDless3_lm, waterloss_df1, 'waterloss_VPDless3')
+waterloss_VPDgreat3 = log_predict(waterloss_VPDgreat3_lm, waterloss_df2, 'waterloss_VPDgreat3')
+```
+
+```{r include=FALSE}
+waterloss_df = NULL
+waterloss_VPDgreat3_subset = waterloss_VPDgreat3[ , c('Date', 'plant', 'log_waterloss_VPDgreat3_fit', 'log_waterloss_VPDgreat3_lwr', 'log_waterloss_VPDgreat3_upr', 'waterloss_VPDgreat3_fit', 'waterloss_VPDgreat3_lwr', 'waterloss_VPDgreat3_upr')]
+waterloss_VPDless3_subset = waterloss_VPDless3[ , c('Date', 'plant', 'log_waterloss_VPDless3_fit', 'log_waterloss_VPDless3_lwr', 'log_waterloss_VPDless3_upr', 'waterloss_VPDless3_fit', 'waterloss_VPDless3_lwr', 'waterloss_VPDless3_upr')]
+#waterloss_MarchApril_subset = waterloss_MarchApril[ , c('Date', 'plant', 'log_waterloss_MarchApril_fit', 'log_waterloss_MarchApril_lwr', 'log_waterloss_MarchApril_upr', 'waterloss_MarchApril_fit', 'waterloss_MarchApril_lwr', 'waterloss_MarchApril_upr')]
+waterloss_df = merge(petal_complete_midday_climate, waterloss_VPDgreat3_subset, by = c('Date', 'plant'), all.x = TRUE)
+waterloss_df = merge(waterloss_df, waterloss_VPDless3_subset, by = c('Date', 'plant'), all.x = TRUE)
+#waterloss_df = merge(waterloss_df, waterloss_MarchApril_subset, by = c('Date', 'plant'), all.x = TRUE)
+waterloss_df = drop_na(petal_complete_midday_climate,total_midday_waterloss_mg)
+
+waterloss_df = waterloss_df %>%
+  #arrange(desc(p_projectedArea)) %>%
+  arrange(desc(mean_midday_VPD))
+```
+
+```{r}
+#poppy_colors = c('#c00a01','#f53a07','#fdec09')
+
+p17 = ggplot(waterloss_df, aes(x = p_projectedArea, y = evaporation
+                                          #, group = VPD_class
+                                          )) +
+  #facet_wrap(~calendar_divide, scales = 'free_x', axes = 'all') +
+  geom_point(aes(
+    #size = mean_midday_VPD, 
+    color = mean_midday_VPD
+    )) +
+  geom_smooth(
+    formula = y~x,
+    #aes(linetype = VPD_class),
+    color = 'black',
+    method="lm",se=TRUE) +
+  labs(y = "<i>E<sub>flower</sub></i> (mmol s<sup>-1</sup>)",
+       x = "<i>A<sub>petal</sub></i> (cm<sup>2</sup>)") +
+  #scale_y_log10() +
+  #scale_x_log10() +
+  guides(
+    colour = guide_legend("VPD<sub>midday</sub>", order = 1),
+    size = guide_legend("VPD<sub>midday</sub>", order =1),
+    linetype = guide_legend("", order = 2)
+    ) +
+  geom_richtext(aes(x = 3.5, y = 0.002), 
+                label = glue("<i>r</i><sup>2</sup> = {waterloss_area_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  #scale_size(range = c(1,3)) +
+  theme_classic() +
+  theme(axis.title.x = element_markdown(),legend.title = element_markdown(),
+        axis.title.y = element_markdown()
+        )
+
+p11 = ggplot(petal_complete_midday_climate, aes(x = Date, y = evaporation)) +
+  geom_point(aes(
+    color = p_projectedArea, 
+    #size = p_projectedArea
+    ), 
+    show.legend = FALSE) +
+  geom_smooth(method="lm",se=TRUE, color = 'black') +
+  labs(y = "<i>E<sub>flower</sub></i> (mmol s<sup>-1</sup>)") +
+  geom_richtext(aes(x = as.Date('2025-06-14'), y = 0.002), 
+                label = glue("<i>r</i><sup>2</sup> = {waterloss_week_R2}*"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  #scale_size(range = c(1,3)) +
+  scale_color_continuous(palette =
+                           c("#fed976","#feb24c","#fd8d3c","#e54726","#e31a1c","#bd0026","#800026"),
+                         limits = c(1,17)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown())
+
+p12 = ggplot(petal_complete_midday_climate, aes(x = mean_midday_VPD, y = evaporation)) +
+  geom_point(aes(
+    color = p_projectedArea, 
+    #size = p_projectedArea
+    )) +
+  #facet_wrap(~season, scales = 'free_x', axes = 'all') +
+  geom_smooth(method="lm",se=TRUE, color = 'black') +
+  labs(y = NULL,
+       x = "Mean midday VPD (kPa)") +
+  geom_richtext(aes(x = 4.75, y = 0.002), 
+                label = glue("<i>r</i><sup>2</sup> = {waterloss_vpd_R2}***"),
+                fill = NA, label.color = NA,
+                label.padding = grid::unit(rep(0, 4), "pt")
+                ) +
+  #scale_size(range = c(1,3)) +
+  scale_color_continuous(palette =
+                        c("#fed976","#feb24c","#fd8d3c","#e54726","#e31a1c","#bd0026","#800026"),
+                         limits = c(1,17)) +
+  guides(
+    colour = guide_legend("<i>A<sub>petal</sub></i>"),
+    size = guide_legend("<i>A<sub>petal</sub></i>")
+    ) +
+  theme_classic() +
+  theme(legend.title = element_markdown())
+
+summary(lm(total_midday_waterloss_mg~week, data=petal_complete_midday_climate))
+
+waterloss_scatter = p11 + p12 + p17 +
+  guide_area() +
+  plot_annotation(tag_levels = "A") +
+  plot_layout(ncol = 2, guides = "collect") & 
+  theme(legend.direction = 'horizontal', 
+        legend.text.position = 'bottom',
+        legend.box.just = 'right'
+        )
+
+export_png('figures/waterloss_scatter.png', waterloss_scatter)
+```
+
+```{r Water Loss ANOVA, include=FALSE}
+waterloss_aov <- aov(total_midday_waterloss_mg~factor(Date),data=petal_complete_midday_climate)
+summary(waterloss_aov)
+plot(waterloss_aov)
+
+#need to clean up this data for this ANOVA... error due to an only 1 observation in beginning of March
+#bartlett.test(total_midday_waterloss_mg~factor(Date), data=petal_complete_midday_climate) 
+
+# Tukey test to see which dates are significantly different
+t_waterloss <- TukeyHSD(waterloss_aov)
+t_waterloss
+
+# Visualization of the Tukey test
+plot(t_waterloss)
+```
+
+#### Surface Conductance and Climate
+
+```{r gsw, Temperature, and VPD Regression, include=FALSE}
+porometer_gsw_total$Date = as_date(porometer_gsw_total$Date)
+porometer_VPD = merge(porometer_gsw_total, midday_climate, by = c("Date"))
+porometer_VPD$mean_midday_VPD = as.numeric(porometer_VPD$mean_midday_VPD)
+porometer_VPD$mean_midday_temp = as.numeric(porometer_VPD$mean_midday_temp)
+porometer_VPD_norepeat = filter(porometer_VPD, repeatMeasurement == 'no')
+porometer_VPD_repeat = filter(porometer_VPD, repeatMeasurement == 'yes')
+```
+
+```{r}
+print("Total surface conductance and VPD linear regression")
+summary(lm(gswTotal~mean_midday_VPD, data=porometer_VPD))
+print("Total surface conductance and air temperature linear regression")
+summary(lm(gswTotal~mean_midday_temp, data=porometer_VPD))
+```
+
+```{r}
+gs_repeat_lme = lmer(gswTotal_mmol ~ mean_midday_temp + (1 | plant), data = porometer_VPD_repeat)
+gs_norepeat_lm = lm(gswTotal_mmol~mean_midday_temp, data = porometer_VPD_norepeat)
+
+summary(gs_repeat_lme)
+summary(gs_norepeat_lm)
+```
+
+```{r Surface Conductance Figure}
+range(porometer_VPD$mean_midday_VPD)
+
+md_vpd_min = min(porometer_VPD$mean_midday_VPD)
+md_vpd_max = max(porometer_VPD$mean_midday_VPD)
+vpd_lim1 = md_vpd_min - (md_vpd_max - md_vpd_min)*0.05
+vpd_lim2 = md_vpd_max + (md_vpd_max - md_vpd_min)*0.05
+
+md_t_min = min(porometer_VPD$mean_midday_temp)
+md_t_max = max(porometer_VPD$mean_midday_temp)
+t_lim1 = md_t_min - (md_t_max - md_t_min)*0.05
+t_lim2 = md_t_max + (md_t_max - md_t_min)*0.05
+
+p7 = ggplot(petal_gsw_gh, aes(x = week_of_flowering, y = gswTotal_mean*1000)) +
+  geom_point() +
+  #geom_smooth(method = 'lm', se = TRUE) +
+  labs(x = "Week of flowering", y = NULL) +
+  annotate("text", x = 18, y = 25, label = "n.s.") +
+  geom_hline(yintercept = gs_mean_gh, color = 'blue', linetype = 5) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = gs_mean_gh - gs_sd_gh, ymax = gs_mean_gh + gs_sd_gh, alpha = .1) +
+  theme_classic() +
+  ylim(0,25) +
+  scale_x_continuous(limits = c(0.15,18.85), expand = expansion(mult = 0), breaks = c(5,10,15)) +
+  theme(axis.title.y = element_markdown())
+
+p8 = ggplot(porometer_gsw_total, aes(x = week, y = gswTotal*1000)) + 
+  geom_point() + 
+  #geom_smooth(method = 'lm', se = TRUE) +
+  labs(x = 'Week of field study', y = "<i>g<sub>s, total</sub></i> (mmol m<sup>-2</sup> s<sup>-1</sup>)") +
+  annotate("text", x = 18, y = 25, label = "n.s.") +
+  geom_hline(yintercept = gs_mean_MtD, color = 'blue', linetype = 5) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = gs_mean_MtD - gs_sd_MtD, ymax = gs_mean_MtD + gs_sd_MtD, alpha = .1) +
+  scale_x_continuous(limits = c(0.15,18.85), expand = expansion(mult = 0), breaks = c(5,10,15)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown())
+
+p9 = ggplot(porometer_VPD, aes(x = mean_midday_VPD, y = gswTotal*1000)) +
+  geom_point() +
+  #geom_smooth(method="lm",se=TRUE) +
+  labs(y = "<i>g<sub>s, total</sub></i> (mmol m<sup>-2</sup> s<sup>-1</sup>)", x = "Mean midday VPD (kPa)") +
+  annotate("text", x = 5.62, y = 25, label = "n.s.") +
+  geom_hline(yintercept = gs_mean_MtD, color = 'blue', linetype = 5) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = gs_mean_MtD - gs_sd_MtD, ymax = gs_mean_MtD + gs_sd_MtD, alpha = .1) +
+  scale_x_continuous(limits = c(vpd_lim1, vpd_lim2), expand = expansion(mult = 0), breaks = c(1,2,3,4,5)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown())
+
+p10 = ggplot(porometer_VPD, aes(x = mean_midday_temp, y = gswTotal*1000)) +
+  geom_point() +
+  #geom_smooth(method="lm",se=TRUE) +
+  labs(y = NULL, x = "Mean midday air temperature (°C)") +
+  annotate("text", x = 38.5, y = 25, label = "n.s.") +
+  geom_hline(yintercept = gs_mean_MtD, color = 'blue', linetype = 5) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = gs_mean_MtD - gs_sd_MtD, ymax = gs_mean_MtD + gs_sd_MtD, alpha = .1) +
+  scale_x_continuous(limits = c(t_lim1, t_lim2), expand = expansion(mult = 0), breaks = c(20,25,30,35)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown())
+
+gs_ontogeny = p8 + p7 + plot_annotation(tag_levels = 'A')
+gs_climate = p9 + p10 + plot_annotation(tag_levels = 'A')
+
+export_png('figures/gs_ontogeny.png', gs_ontogeny)
+export_png('figures/gs_climate.png', gs_climate)
+```
+
+```{r}
+ggplot(porometer_VPD_norepeat, aes(x = mean_midday_temp, y = gswTotal_mmol)) + geom_point() + geom_smooth(method = 'lm', se = TRUE) +
+  labs(subtitle = 'Non-repeat measurements', y = "<i>g<sub>s, total</sub></i> (mmol m<sup>-2</sup> s<sup>-1</sup>)") +
+  #annotate("text", x = 18, y = 25, label = "n.s.") +
+  theme_classic() +
+  theme(axis.title.y = element_markdown())
+
+ggplot(porometer_VPD_repeat, aes(x = mean_midday_temp, y = gswTotal_mmol, color = plant)) + geom_point() + geom_smooth(method = 'lm', se = FALSE) +
+  labs(subtitle = 'Repeat measurements', y = NA) +
+  #annotate("text", x = 18, y = 25, label = "n.s.") +
+  theme_classic()
+
+p18 = ggplot(porometer_gsw_total_norepeat, aes(x = week, y = gswTotal_mmol)) +
+  geom_point() +
+  #geom_smooth(method="lm",se=TRUE) +
+  labs(y = "<i>g<sub>s, total</sub></i> (mmol m<sup>-2</sup> s<sup>-1</sup>)", 
+       x = "Week of field study",
+       subtitle = 'Non-repeat measurements') +
+  annotate("text", x = 18, y = 25, label = "n.s.") +
+  geom_hline(yintercept = gs_norepeat_mean, color = 'blue', linetype = 5) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = gs_norepeat_mean - gs_norepeat_sd, ymax = gs_norepeat_mean + gs_norepeat_sd, alpha = .1) +
+  scale_x_continuous(limits = c(0.15,18.85), expand = expansion(mult = 0), breaks = c(5,10,15)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown())
+
+p19 = ggplot(porometer_gsw_total_repeat, aes(x = week, y = gswTotal_mmol)) +
+  geom_point() +
+  #geom_smooth(method="lm",se=TRUE) +
+  labs(y = NULL, x = "Week of field study",
+       subtitle = 'Repeat measurements') +
+  annotate("text", x = 18, y = 25, label = "n.s.") +
+  geom_hline(yintercept = gs_repeat_mean, color = 'blue', linetype = 5) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = gs_repeat_mean - gs_repeat_sd, ymax = gs_repeat_mean + gs_repeat_sd, alpha = .1) +
+  scale_x_continuous(limits = c(0.15,18.85), expand = expansion(mult = 0), breaks = c(5,10,15)) +
+  theme_classic() +
+  theme(axis.title.y = element_markdown())
+
+p18 + p19
+```

@@ -1,0 +1,26 @@
+ImageJ Workflow
+
+File->Open...
+
+Analyze->Set Scale...
+
+Draw a line on the ruler to calibrate 1 cm. Set to global for all measurements.
+
+Process->Binary->Make Binary
+
+If the make binary process doesn't work well, you can try running:
+
+Process->Smooth
+
+Draw a polygon around the petal
+
+Analyze->Analyze Particles...
+
+Record measurement in csv
+
+~~~
+
+For the leaves, I had trouble getting the make binary feature to function accurately.
+As a workaround, I went to Image>Adjust>Brightness/Contrast. I turned the brightness down and the contrast up,
+so that the values on the left and right of the viewer read 108 and 240.
+It looks like the minimum value needs to be around 110. The maximum value is more flexible.
