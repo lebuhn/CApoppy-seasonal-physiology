@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: sentence
----
-
 # *Shrinking flowers* data repository
 
 ## Summary
