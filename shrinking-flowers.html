@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Shea Nolan">
+
+<title>Shrinking flowers allow California poppies to minimize water use during dry-summer transition</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="shrinking-flowers_files/libs/clipboard/clipboard.min.js"></script>
+<script src="shrinking-flowers_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="shrinking-flowers_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="shrinking-flowers_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="shrinking-flowers_files/libs/quarto-html/popper.min.js"></script>
+<script src="shrinking-flowers_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="shrinking-flowers_files/libs/quarto-html/anchor.min.js"></script>
+<link href="shrinking-flowers_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="shrinking-flowers_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="shrinking-flowers_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="shrinking-flowers_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="shrinking-flowers_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
+  <ul class="collapse">
+  <li><a href="#study-system" id="toc-study-system" class="nav-link" data-scroll-target="#study-system">Study system</a></li>
+  <li><a href="#flower-measurements" id="toc-flower-measurements" class="nav-link" data-scroll-target="#flower-measurements">Flower measurements</a></li>
+  <li><a href="#greenhouse-study" id="toc-greenhouse-study" class="nav-link" data-scroll-target="#greenhouse-study">Greenhouse study</a></li>
+  <li><a href="#whole-flower-water-use" id="toc-whole-flower-water-use" class="nav-link" data-scroll-target="#whole-flower-water-use">Whole flower water use</a></li>
+  <li><a href="#statistical-methods" id="toc-statistical-methods" class="nav-link" data-scroll-target="#statistical-methods">Statistical methods</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
+  <ul class="collapse">
+  <li><a href="#climate" id="toc-climate" class="nav-link" data-scroll-target="#climate">Climate</a></li>
+  <li><a href="#petal-area-and-water-content" id="toc-petal-area-and-water-content" class="nav-link" data-scroll-target="#petal-area-and-water-content">Petal area and water content</a></li>
+  <li><a href="#petal-surface-conductance-and-whole-flower-water-use" id="toc-petal-surface-conductance-and-whole-flower-water-use" class="nav-link" data-scroll-target="#petal-surface-conductance-and-whole-flower-water-use">Petal surface conductance and whole flower water use</a></li>
+  <li><a href="#whole-plant-flower-production-and-petal-scaling-relationships" id="toc-whole-plant-flower-production-and-petal-scaling-relationships" class="nav-link" data-scroll-target="#whole-plant-flower-production-and-petal-scaling-relationships">Whole plant flower production and petal scaling relationships</a></li>
+  </ul></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a>
+  <ul class="collapse">
+  <li><a href="#ontogenetic-shifts-in-the-water-cost-of-flowering" id="toc-ontogenetic-shifts-in-the-water-cost-of-flowering" class="nav-link" data-scroll-target="#ontogenetic-shifts-in-the-water-cost-of-flowering">Ontogenetic shifts in the water cost of flowering</a></li>
+  <li><a href="#phenotypic-plasticity-in-the-water-cost-of-flowering" id="toc-phenotypic-plasticity-in-the-water-cost-of-flowering" class="nav-link" data-scroll-target="#phenotypic-plasticity-in-the-water-cost-of-flowering">Phenotypic plasticity in the water cost of flowering</a>
+  <ul class="collapse">
+  <li><a href="#the-interaction-of-petal-size-and-floral-water-use" id="toc-the-interaction-of-petal-size-and-floral-water-use" class="nav-link" data-scroll-target="#the-interaction-of-petal-size-and-floral-water-use">The interaction of petal size and floral water use</a></li>
+  <li><a href="#insight-into-whole-plant-reproductive-water-investment" id="toc-insight-into-whole-plant-reproductive-water-investment" class="nav-link" data-scroll-target="#insight-into-whole-plant-reproductive-water-investment">Insight into whole plant reproductive water investment</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  <li><a href="#supplementary-figures-and-tables" id="toc-supplementary-figures-and-tables" class="nav-link" data-scroll-target="#supplementary-figures-and-tables">Supplementary Figures and Tables</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Shrinking flowers allow California poppies to minimize water use during dry-summer transition</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shea Nolan </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Flower production is key to the reproductive success of animal-pollinated plants. In these species, the reliance on attracting animal pollinators means that pollinator selection can greatly influence variation in flower structure and function (Bell 1985; Teixido <em>et al.</em> 2016). However, water availability can counter pollinator-mediated selection on floral traits by constraining the size, color, and nectar volume of flowers (Galen 1999; Caruso <em>et al.</em> 2019; Strauss and Whittall 2006). Flowering plants in many habitats face exceptional water shortages that will challenge reproduction, as droughts are currently increasing in frequency due to human-caused climate change (Dai 2013; IPCC 2023). Understanding the water cost of flowering may help us predict how plant reproduction will respond to future drought.</p>
+<p>Water is important for the construction and maintenance of flowers. Flower petals have a relatively high water construction cost due to a low dry matter content in comparison to leaves. This greater floral water construction cost is caused by flower petals relying on turgor pressure for biomechanical support rather than carbon-dense cell walls (Roddy et al., 2019; Roddy et al., 2023). In contrast, the amount of water needed to replace evaporative water loss in order to prevent dehydration—the water maintenance cost—is generally low compared to leaves. This lower floral water maintenance cost is because, for many species, petal stomata are sparse or all together absent (Lipayeva 1989; Zhang <em>et al.</em> 2018; Roddy <em>et al.</em> 2016). As such, petal water loss is largely associated with cuticular water loss, which has a relatively low surface conductance to water vapor, or <em>g<sub>s</sub></em> (Aun <em>et al.</em> 2024; Feild <em>et al.</em> 2009; Roddy <em>et al.</em> 2018). The combination of low carbon investment, high water content, and low <em>g<sub>s</sub></em> implies a strategy that diminishes the overall resource cost of building and maintaining flowers in comparison with leaves (Roddy <em>et al.</em> 2016). The evolution of this low carbon investment strategy in angiosperms is likely a consequence of water being a relatively cheaper resource than carbon for maintaining the shape of short-lived, heterotrophic structures like flowers (Ashman and Schoen 1994; Roddy <em>et al.</em> 2021).</p>
+<p>A strong reliance on water for flowering outlines certain risks to reproductive failure in a changing climate (Aun <em>et al.</em> 2024; Zhang and Brodribb 2017; Carins-Murphy <em>et al.</em> 2023; Bourbia <em>et al.</em> 2020). While reducing stomata density may lower petal <em>g<sub>s</sub></em>, this comes with the tradeoff of reduced control over water loss. In fact, flowers lose more water than leaves during intervals of enhanced atmospheric demand and soil water stress that result in stomatal closure (Roddy <em>et al.</em> 2023). In comparison with leaves, flowers experience greater change in water content per change in water potential, or hydraulic capacitance, which apparently compensates for their relative inability to downregulate transpiration (An <em>et al.</em> 2023; Roddy <em>et al.</em> 2019). In spite of this, flowers have shown greater potential for turgor loss than leaves, and the wilting of petals can affect reproduction by obstructing sexual organs from pollinator access (Aun <em>et al.</em> 2024). Furthermore, the sizeable influence of cuticular conductance in petals means that flowers exposed to extreme heat may be vulnerable to structural changes in the cuticle that accelerate water loss (Aun <em>et al.</em> 2024; Schreiber and Schönherr 1990).</p>
+<p>Maintaining conspicuous floral display poses additional problems for plants flowering through drought. The water maintenance cost of larger flowers increases in drought-prone environments due to their greater evaporative surface area (Teixido and Valladares 2014; Lambrecht 2013; Galen <em>et al.</em> 1999). Large flowers also have a higher water construction cost because they contain more tissue volume to hydrate (Paiva and Roddy 2024). Reductions in flower size under water limitation can occur via developmental plasticity, which may decrease floral construction cost as well as reduce total potential water loss (Caruso 2006; Lambrecht <em>et al.</em> 2017; Matesanz <em>et al.</em> 2010). Although smaller flowers may reduce floral water demand, reductions in flower size under drought are not necessarily adaptive because they often occur alongside declines in flower number, pollinator attraction, and reproductive output (Kuppler and Kotowska 2021; Gallagher and Campbell 2017; Höfer <em>et al.</em> 2023; Bonser 2021). Reductions in flower size may impact pollinator-visitation because pollinators prefer conspicuous flowers that tend to produce more rewards like nectar (Gervasi and Schiestl 2017; Nattero <em>et al.</em> 2010; Schemske and Bradshaw 1999).</p>
+<p>Declines in flower size within seasonally dry climates caused by either plasticity to water limitation or plant ontogeny may alleviate the water cost of flowering for plants blooming through drought (Lambrecht and Dawson 2007; Weiner 2004). Phenotypic plasticity in bud diameter, total floral biomass, and number of seed capsules is well documented in <em>Eschscholzia californica</em> Cham. (Papaveraceae), with much of the flexibility in their development seemingly linked with variation in the abiotic environment (Becker <em>et al.</em> 2005; Bustamante <em>et al.</em> 2017; Leger and Rice 2003). In their native range in California, <em>E. californica</em> typically flower from February to September (Greenhouse <em>et al.</em> 2012), but flowering onset is advancing in some locations due to increasing mean annual temperatures (Pearson <em>et al.</em> 2021). The long bloom period of <em>E. californica</em> corresponds with the transition to dry-summer in a Mediterranean climate, when water availability decreases and atmospheric water demand increases. Flower size reduction may minimize the water cost of flowering in <em>E. californica</em> across its bloom period. Mechanistically, this could be accomplished by developmental plasticity, but making this claim requires us to test for ontogenetic contingency (Diggle 1997). In this study, we evaluated the influence of ontogeny and phenotypic plasticity on floral water use in a wild <em>E. californica</em> population from Northern California. Specifically, we characterized changes in the water construction and maintenance costs of flowering by tracking petal area, water content, <em>g<sub>s</sub></em>, and flower number alongside seasonal shifts in vapor pressure deficit (VPD). To separate out an ontogenetic effect, we measured the same floral water use traits with plants grown in the controlled environment of a greenhouse.</p>
+</section>
+<section id="methods" class="level1">
+<h1>Methods</h1>
+<section id="study-system" class="level2">
+<h2 class="anchored" data-anchor-id="study-system">Study system</h2>
+<p><em>Eschscholzia californica</em> Cham. is an annual or perennial in the family Papaveraceae native to the west coast of North America and introduced to Chile, New Zealand, Tasmania, and Australia. <em>Eschscholzia californica</em> produce a determinate inflorescence composed of orange-yellow flowers. The corolla is biseriate and polypetalous, in which four wedge-shaped petals are arranged opposite one another. The flowers are bisexual, self-incompatible, nectarless, and predominantly pollinated by bees and beetles (Cook 1962; Anic <em>et al.</em> 2015). Individual flowers remain open for up to four days before the petals and stamens abscise (Becker <em>et al.</em> 2005). In their California range, <em>E. californica</em> can flower from January to September in open grasslands, and they are often found alongside other wildflower species.</p>
+<p>We conducted a field study between February and June of 2025 in the San Francisco Bay Area of California at a single site in Mount Diablo State Park (37°52’57.6”N 121°58’12.2”W). The site is an open grassland with a dense stand of <em>Eschscholzia californica</em> on a south-facing hillside (Figure 1). A regional weather station at nearby Diablo Junction records average maximum temperatures of 30 °C in July, average minimum temperatures of 3.9 °C in January, and 612 mm of mean annual precipitation (Hutton <em>et al.</em> 2021). The soil was weathered from metamorphosed sandstone and shale of the Franciscan Formation. Chaparral vegetation consisting of <em>Artemisia californica</em> and <em>Salvia mellifera</em> shrubs on a chert outcrop occur uphill from the study area. Invasive, non-native grasses such as <em>Avena barbata</em> are common.</p>
+<div id="fig-site" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-site-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="fig-march" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A green, grassy hillside with bright orange poppy flowers on a cloudless, sunny day. In the center of the image is a white, knee-high post with small solar radiation shield hanging from the top.">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-march-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/site_march25.jpg" class="img-fluid figure-img" data-ref-parent="fig-site" alt="A green, grassy hillside with bright orange poppy flowers on a cloudless, sunny day. In the center of the image is a white, knee-high post with small solar radiation shield hanging from the top.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-march-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) March 25th, 2025
+</figcaption>
+</figure>
+</div>
+<div id="fig-april" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The same scene as before, except now the grass on the hillside is taller and has turned brown. Poppies still grow, expect they appear smaller and yellowish in color.">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-april-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/site_april29.jpg" class="img-fluid figure-img" data-ref-parent="fig-site" alt="The same scene as before, except now the grass on the hillside is taller and has turned brown. Poppies still grow, expect they appear smaller and yellowish in color.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-april-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) April 29th, 2025
+</figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-site-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Photographs from the Mount Diablo field site. On March 25th, 2025, fresh <em>Avena barbata</em> growth is green and <em>Eschscholzia californica</em> flowers are large and bright orange. On April 29th, 2025, mature <em>A. barbata</em> are taller and turning brown, but <em>E. californica</em> flowers are still blooming.
+</figcaption>
+</figure>
+</div>
+<p>Microclimate was recorded during the study period using a temperature (°C) and relative humidity (%) sensor (Lascar EL-USB-2 data logger) housed in a solar radiation shield and placed 1 meter above the ground at the site coordinates. Air temperature and relative humidity were recorded every 30 minutes. Vapor pressure deficit (VPD; kPa)—a measure of the atmospheric demand for water from leaves and petals—was calculated from air temperature and relative humidity using the Arden Buck equation (Buck 1981). Some microclimate data were lost due to equipment malfunctions. Specifically, data were absent from the periods between February 14 – March 4, March 25 – April 8, and April 15 – April 22. To gap fill this missing microclimate data, PRISM minimum, mean, and maximum air temperature and VPD for our site coordinates were used to develop linear models between PRISM data and site microclimate data (PRISM Group 2025). These linear models were used to predict daily minimum, mean, and maxiumum VPD and air temperature during the time series gaps in the sensor data (see Supplemental Figure S1 and Supplemental Table S1).</p>
+</section>
+<section id="flower-measurements" class="level2">
+<h2 class="anchored" data-anchor-id="flower-measurements">Flower measurements</h2>
+<p>We measured petal traits between 9:00 am and 2:00 pm PST during peak daytime temperatures when flowers were open. To evaluate the relationship between seasonal climate and reproductive water cost in <em>E. californica</em>, we recorded three different floral water use traits in the field—petal surface conductance (<em>g<sub>s</sub></em>), petal area, and petal water content. We also recorded the number of flowers produced by 20 <em>E. californica</em> plants at the Mount Diablo study site to provide insight into whole plant reproductive investment. Between February 25<sup>th</sup> and March 18<sup>th</sup>, we selected adult plants within 15 m of the site coordinates. Selected plants were spaced at least 5 m apart to ensure an even distribution of plants across the study plot. We marked each plant with blue flagging tape tied loosely around the central stem, and we drove a small stake into the ground adjacent to the plant to use as a backup marker. Only flowering plants were chosen to eliminate non-reproducing individuals. As such, flower counts likely overestimate the mean flower production from the total population due to an unknown number of non-flowering plants. For the duration of the study period, we counted the flowers on each flagged plant once every 5 to 8 days. Flower pedicels were marked with indelible ink to avoid double counting. We did not count flowers that were open between field visits. Therefore, our flower counts are an underestimate of total flower production from the selected plants. On April 22<sup>nd</sup> after flower counts began to decline (Figure S2), the longest rosette leaves on the flagged <em>E. californica</em> were measured to determine plant radius (m). This data was then used to evaluate the influence of plant size on total individual flower production up to April 22<sup>nd</sup>.</p>
+<p>We recorded the surface conductance to water vapor, <em>g<sub>s</sub></em> (mmol m<sup>-2</sup> s<sup>-1</sup>), from two undamaged petals of a fully-expanded flower on each flagged plant using a portable steady-state porometer (Model LI-600, LI-COR Environmental, Lincoln, NE, USA). Petal surface conductance was measured on both the adaxial and abaxial surfaces (<em>g<sub>s</sub></em><sub>,&nbsp;<em>adaxial</em></sub> and <em>g<sub>s,&nbsp;abaxial</sub></em>, respectively). Values for <em>g<sub>s,&nbsp;abaxial</sub></em> and <em>g<sub>s,&nbsp;adaxial</sub></em> from individual flowers were added together to get total petal surface conductance (<em>g<sub>s,&nbsp;total</sub></em>). Low rates of water loss can be hard to resolve given the ± 2% accuracy of the relative humidity sensors and ± 0.5 °C accuracy for surface temperature measurements of the LI-600 (LI-COR 2026). To correct for instrument accuracy, we set any negative <em>g<sub>s</sub></em><sub>,&nbsp;<em>adaxial</em></sub> and <em>g<sub>s</sub></em><sub>,&nbsp;<em>abaxial</em></sub> values to 0 mmol m<sup>-2</sup> s<sup>-1</sup>. Out of 1842 <em>g<sub>s</sub></em><sub>,&nbsp;<em>adaxial</em></sub> and <em>g<sub>s</sub></em><sub>,&nbsp;<em>abaxial</em></sub> values, 442 were less than 0 mmol m<sup>-2</sup> s<sup>-1</sup>. Previous research monitoring the change in the fresh mass of detached petals through time has shown that <em>g<sub>s,&nbsp;total</sub></em> for <em>E. californica</em> is around 11.3 mmol m<sup>-2</sup> s<sup>-1</sup> (Roddy <em>et al.</em> 2023). In light of this information, we eliminated <em>g<sub>s,&nbsp;total</sub></em> values greater than 25 mmol m<sup>-2</sup>s<sup>-1</sup>, which is twice the previously reported values for <em>E. californica</em>. Out of 921 measurements of <em>g<sub>s,&nbsp;total</sub></em>, 77 values were greater than 25 mmol m<sup>-2</sup>s<sup>-1</sup>. These anomolous readings were likely due to damaged petal surfaces or residual petal surface moisture from dew. 76 measurements of <em>g<sub>s,&nbsp;total</sub></em> were 0 mmol m<sup>-2</sup> s<sup>-1</sup>, meaning the <em>g<sub>s</sub></em><sub>,&nbsp;<em>adaxial</em></sub> and <em>g<sub>s</sub></em><sub>,&nbsp;<em>abaxial</em></sub> values were both negative. These were also excluded, as it is highly unlikely for living petal tissue to have negative <em>g<sub>s,&nbsp;total</sub></em>. Altogether, this left us with a sample size of 768 <em>g<sub>s,&nbsp;total</sub></em> measurements.</p>
+<p>Petal projected area (<em>A<sub>petal</sub></em>; m<sup>2</sup>) and absolute petal water content (<em>W<sub>absolute</sub></em>; mg) were evaluated on 20 additional <em>E. californica</em> plants each week when possible. Five individuals were sampled at the study site on February 25<sup>th</sup>, 10 were sampled on March 4<sup>th</sup>, and 14 on March 11<sup>th</sup>. Fewer plants were observed flowering in late February and early March. As such, initial sample sizes for flower measurements taken earlier in the season were small, but they increased with time. Plants were initially selected haphazardly and then randomly chosen on a 30 m x 30 m grid centered at the site coordinates after May 5<sup>th</sup><sub>.</sub> We excluded flagged plants from petal collection to prevent damage that may have impacted floral output. Before petal excision, the <em>g<sub>s</sub></em><sub>,&nbsp;<em>adaxial</em></sub> and <em>g<sub>s</sub></em><sub>,&nbsp;<em>abaxial</em></sub> of the flower were measured in the previously described manner. One flower petal was harvested per plant. Each petal was sealed in a plastic bag alongside a moist paper towel in an ice chest before transportation to the laboratory. On the same day, excised petals were carefully unfolded and photographed on a white sheet to assess their projected area (Schneider <em>et al.</em> 2012). To minimize the amount of flower material removed from the <em>E. californica</em> population at Mt. Diablo, <em>A<sub>petal</sub></em> values were multiplied by 4 to estimate total open flower projected area (<em>A<sub>flower</sub></em>). After scanning for <em>A<sub>petal</sub></em>, we weighed the harvested petals to obtain their fresh mass before oven-drying them at 70 °C for at least 48 hours to obtain their dry mass. These were used to compute <em>W<sub>absolute</sub></em> (fresh mass – dry mass)<em>.</em></p>
+</section>
+<section id="greenhouse-study" class="level2">
+<h2 class="anchored" data-anchor-id="greenhouse-study">Greenhouse study</h2>
+<p>We performed a greenhouse study between September 2025 and January 2026 to investigate the effect of ontogeny on flower size. We collected seed from multiple plants on the Mount Diablo study plot between the months of May and June. We adapted our germination methods from those used by Montalvo <em>et al.</em> (2002). Seeds were placed in petri dishes between two filter papers and wetted with 2 ml of water. The seeds were subjected to cold stratification in a 6—8 °C refrigerator. Petri dishes were checked every few days, and remoistened with 2 ml of water if the filter paper was dry. We observed germination after 21 days. All seeds were promptly transplanted to 11.5-L pots in the greenhouse at San Francisco State University.</p>
+<p>We grew 12 plants in sandy loam with added organic matter. Plants were under natural light supplemented with 15 hours of overhead lighting to induce flowering and accelerate growth (Sharma and Nanda 1976). For the temperature range, we chose to approximate springtime conditions at the Mount Diablo field site. Daytime temperatures were regulated between 16—24 °C, whereas nighttime temperatures were maintained between 4—10 °C. Relative humidity was allowed to fluctuate with the exterior climate. We placed a temperature and relative humidity sensor (Lascar EL-USB-2 data logger) approximately 1 meter above the growing table to monitor greenhouse air temperature and VPD. To ensure plants were well-watered, we initially watered every 3 to 4 days until the top 5 cm of soil in each pot was wet to touch. We eventually found it necessary to increase watering frequency over time to accommodate growing plant size. As such, an automatic irrigation system was built on December 17<sup>th</sup>, after which plants were watered for 5 minutes once every 24 hours.</p>
+<p>We began floral measurements when flowering was observed after 5 weeks of growth. The week when flowering began for each individual plant was recorded, and floral measurements were made every 5 to 8 days. Values for <em>g<sub>s,&nbsp;total</sub></em>, <em>A<sub>petal</sub></em>, and <em>W<sub>absolute</sub></em> were measured with the same methods described previously, but with one difference. We measured the <em>g<sub>s</sub></em><sub>,&nbsp;<em>adaxial</em></sub>and <em>g<sub>s,&nbsp;abaxial</sub></em> of three flowers per plant, including the collected flower petal. After determining <em>g<sub>s,&nbsp;total</sub></em> for each flower, we calculated mean <em>g<sub>s,&nbsp;total</sub></em> for each plant per week.</p>
+</section>
+<section id="whole-flower-water-use" class="level2">
+<h2 class="anchored" data-anchor-id="whole-flower-water-use">Whole flower water use</h2>
+<p>Whole flower midday water use (<em>E<sub>flower</sub></em>;mmol s<sup>-1</sup>) was calculated as the ratio of mean midday vapor pressure deficit (VPD<sub>midday</sub>; kPa) per standard atmospheric pressure (101.3 kPa) multiplied by total petal surface conductance (<em>g<sub>s,&nbsp;total</sub></em>; mmol m<sup>-2</sup> s<sup>-1</sup>) and open flower projected area (<em>A<sub>flower</sub></em>; m<sup>2</sup>).</p>
+<p><span class="math inline">E \scriptstyle flower</span> = <span class="math inline">\frac{VPD midday}{101.3}</span> ∗ <span class="math inline">g \scriptstyle s, total</span> ∗ <span class="math inline">A \scriptstyle flower</span></p>
+<p>As <em>E. californica</em> flowers close at night, we chose midday as our window of time to ensure that our model accounted for nyctinasty (Simonin et al., pending publication). We defined midday as the 2-hour duration between 11:00 am and 1:00 pm PST. Mean VPD was calculated for the midday time duration from the available field sensor data. Midday VPD data were missing from March 25 and April 15, so we used values from the day prior because they were the best approximates according to regional weather records (PRISM Group 2025, Figure 2). Due to the lack of wind speed data, we ignored surface boundary layer conditions in our flower water loss model.</p>
+</section>
+<section id="statistical-methods" class="level2">
+<h2 class="anchored" data-anchor-id="statistical-methods">Statistical methods</h2>
+<p>All statistical analyses were performed in R (v4.4.1; R Core Team 2024). We used two separate one-way analysis of variance (ANOVA) with the <em>stats</em> package to test whether <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> differed among weekly sampling periods during the seasonal transition from spring to summer. We visualized and tested ANOVA model residuals using Q-Q plots, the Shapiro-Wilk normality test, and Bartlett’s test for homoscedasticity. The data for <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> were log<sub>10</sub>-transformed when necessary, so that model assumptions were met. For traits exhibiting significant differences among weeks (<em>p</em> &lt; 0.05), we used the Tukey HSD test to make pairwise comparisons between each weekly batch of flower petals. The coefficients of determination (<em>r</em><sup>2</sup>) were calculated by dividing the group sum of squares by the total sum of squares. The <em>p</em>-values were derived from the F-distribution.</p>
+<p>To test for relationships between seasonal climate and floral water use traits, we fit linear regression models using flower trait as the dependent variable and a measure of climate as the independent variable. We first looked at two separate regressions with <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> as functions of maximum VPD (VPD<sub>max</sub>). The data for <em>A<sub>petal</sub></em>, <em>W<sub>absolute</sub></em>, and VPD<sub>max</sub> were log<sub>10</sub>-transformed for these models, but in the figures the data were plotted in arithmetic space with the regression lines appropriately transformed. We calculated mean VPD<sub>max</sub> across a 10-day period prior to petal collection. Research into <em>E. californica</em> morphogenesis suggests that a 10-day window is appropriate considering the duration of bud development, when flower growth rate variation is pronounced (Becker <em>et al.</em> 2005). We also looked at three separate regressions of <em>g<sub>s,&nbsp;total</sub></em> as it related to mean midday temperature, mean midday VPD, and week. To account for non-independence in repeat <em>g<sub>s,&nbsp;total</sub></em> measurements taken from flagged plants, we used the <em>lme4</em> package to fit linear mixed effect models (LMMs) with plant as the random effect (Bates <em>et al.</em> 2015). P-values were derived from LMMs using the <em>lmerTest</em> package (Kuznetsova <em>et al.</em> 2017). We applied linear regressions for non-repeat measurements. Additionally, we used linear regressions to analyze whole flower midday water use against <em>A<sub>petal</sub></em>, mean midday VPD, and week. We also used a multiple linear regression (MLR) to test how <em>A<sub>petal</sub></em> and mean midday VPD together predict whole flower midday water use.</p>
+<p>We constructed additional models to further describe <em>E. californica</em> reproductive physiology. To test for a relationship between plant size and flower production, we fit a linear regression model using the sum total number of flowers produced by flagged plants by April 22<sup>nd</sup> as the dependent variable and plant radius as the independent variable. Linear regression was also used to test the scaling relationship between <em>W<sub>absolute</sub></em> and <em>A<sub>petal</sub></em>. To test whether water content per dry mass (<em>W<sub>mass</sub></em>, g g<sup>-1</sup>) was changing with petal size, we used linear regression to analyze the scaling relationship of <em>W<sub>mass</sub></em> and <em>A<sub>petal</sub></em>. We log<sub>10</sub>-transformed all data for these regressions, but we visualized the petal data in arithmetic space with the regression lines transformed accordingly.</p>
+<p>We analyzed the greenhouse data with linear mixed effects models to account for non-independence caused by repeated sampling across individual plants (Muhammad 2023). We tested how week of flowering predicted <em>A<sub>petal</sub></em>, <em>W<sub>absolute</sub></em>, and <em>g<sub>s,&nbsp;total</sub></em> using plant as the random effect. To assess if response variables met model assumptions, we used the Shapiro-Wilk test and Q-Q plots to determine that the residuals were normally distributed. Estimated marginal means with Tukey adjustment were used to make pairwise comparisons between sampling periods. This was done with the <em>emmeans</em> package (Lenth 2023).</p>
+</section>
+</section>
+<section id="results" class="level1">
+<h1>Results</h1>
+<section id="climate" class="level2">
+<h2 class="anchored" data-anchor-id="climate">Climate</h2>
+<p>Air temperature and VPD increased over the bloom period (February 25 to July 2) at Mount Diablo (Figure 2A, 2C). In March, average daily temperatures were 12.0 ± 2.84 °C, with mean VPD of 0.527 ± 0.248 kPa. By June, average daily temperatures and VPD were 22.7 ± 3.21 °C and 2.16 ± 0.742 kPa, respectively. Greenhouse climate approximated mean conditions recorded in the field during late March – early April. Average temperatures and VPD across the entire greenhouse study were 17.2 ± 1.73 °C and 0.582 ± 0.158 kPa (Figure 2B, 2D).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/climate_linegraphs.png" class="img-fluid figure-img" alt="Four line graphs showing climate trends on the y-axes and calendar dates on the x-axes. At Mount Diablo, vapor pressure deficit and air temperature tended to increase over time, whereas in the greenhouse these variables were generally stable."></p>
+<figcaption>Daily minimum, mean, and maximum vapor pressure deficit and air temperature at Mount Diablo (A and C) compared with a climate-controlled greenhouse (B and D). Solid lines represent daily means, whereas the colored ribbons correspond to daily maximum and minimum values. Dotted lines indicate portions of the graph that were modeled using PRISM data (see Supplemental Figure S1).</figcaption>
+</figure>
+</div>
+</section>
+<section id="petal-area-and-water-content" class="level2">
+<h2 class="anchored" data-anchor-id="petal-area-and-water-content">Petal area and water content</h2>
+<p>Both <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> differed significantly amongst weekly samples at the Mount Diablo field site (Figure 3A and 3C, <em>p</em> &lt; 0.0001). According to Tukey HSD comparisons, petals collected before April 15—the 8th week of the field study—were distinct from any observed after week 10 on April 29 (<em>p</em> &lt; 0.0001). Mean <em>A<sub>petal</sub></em> between February 25 and April 3 (week 1–6, n = 89) was 10.2 ± 3.26 cm<sup>2</sup>, and mean <em>W<sub>absolute</sub></em>was 91.4 ± 32.5 mg. From May 6 to June 25 (week 11–18, n = 140), mean <em>A<sub>petal</sub></em> was 2.72 ± 0.942 cm<sup>2</sup>, and mean <em>W<sub>absolute</sub></em>was 17.2 ± 7.17 mg. Petals collected on April 15 and April 29 (week 8 and 10, n = 40) were transitional, with intermediate size and water content (<em>A<sub>petal</sub></em> = 6.26 ± 2.28 cm<sup>2</sup>, <em>W<sub>absolute</sub></em> = 47.2 ± 21.7 mg). Tukey HSD comparisons indicated that these transitional petals differed from both early and late-season petals for both traits (each <em>p</em> &lt; 0.0001). <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> negatively declined with 10-day mean VPD<sub>max</sub> (Figure 4). The relationships were modeled as log<sub>10</sub><em>A<sub>petal</sub></em> = -1.22 ∙ log<sub>10</sub>VPD<sub>max</sub> + 1.25 (<em>r<sup>2</sup></em> = 0.73, <em>p</em> &lt; 0.0001) and log<sub>10</sub><em>W<sub>absolute</sub></em> = -1.55 ∙ log<sub>10</sub>VPD<sub>max</sub> + 2.27 (<em>r<sup>2</sup></em> = 0.77, <em>p</em> &lt; 0.0001).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/petal_boxplots.png" class="img-fluid figure-img" alt="Four boxplot graphs showing petal size and water content on the y-axes and week of field study and week of flowering on the x-axes."></p>
+<figcaption>Seasonal and ontogenetic variation in petal size and water content. The projected petal area and water content of Mount Diablo <em>E. californica</em> grown in different environments. Petals collected in the field (A and C) demonstrated shrinking size and water content over time. Greater petal area and water content were observed earlier in plant development (B and D), but greenhouse blooms shrank less than wild flowers.</figcaption>
+</figure>
+</div>
+<p><em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> varied significantly when observed over the course of development in a greenhouse setting (Figure 3B and 3D, <em>p</em> &lt; 0.0001). Petals were largest during weeks 1–3 of flowering (n = 36). Mean <em>A<sub>petal</sub></em> was 10.2 ± 1.87 cm<sup>2</sup> and mean <em>W<sub>absolute</sub></em> was 83.9 ± 18.7 mg. By weeks 6–18 of flowering (n = 65), both of the means for <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> had reduced (<em>p</em>&lt;0.0001) to 6.80 ± 1.65 cm<sup>2</sup> and 51.0 ± 13.9 mg, respectively. Flowers were transitional during weeks 4 and 5 (n = 24). They were distinct from weeks 6 – 18 in size (<em>A<sub>petal</sub></em> = 8.82 ± 2.70 cm<sup>2</sup>, <em>p</em> &lt; 0.0001) and water content (<em>W<sub>absolute</sub></em> = 67.6 ± 20.4 mg, <em>p</em> &lt; 0.0001), but the comparison to earlier weeks was weaker (<em>A<sub>petal</sub></em>, <em>p</em> = 0.0045; <em>W<sub>absolute</sub></em>, <em>p</em> = 0.0001).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/petal_vpd_scatter.png" class="img-fluid figure-img" alt="Two scatterplots showing petal area and petal water content on the y-axes and 10 day mean VPD max on the x-axes."></p>
+<figcaption>Vapor pressure deficit averaged 10 days prior to petal collection was negatively correlated with (A) projected petal area and (B) absolute petal water content. This time duration was chosen because it corresponds with stages of flower and bud development in <em>E. californica</em> that show substantial variation in size (Becker et al.&nbsp;2005).</figcaption>
+</figure>
+</div>
+</section>
+<section id="petal-surface-conductance-and-whole-flower-water-use" class="level2">
+<h2 class="anchored" data-anchor-id="petal-surface-conductance-and-whole-flower-water-use">Petal surface conductance and whole flower water use</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/gs_ontogeny.png" class="img-fluid figure-img" alt="Two scatterplots showing total petal surface conductance on the y-axes and week of field study and week of flowering on the x-axes."></p>
+<figcaption>Total petal surface conductance was steady over time and development. (A) gs, total observed from flowers at Mount Diablo. (B) gs, total across the development of 12 plants grown in a greenhouse from seed collected at the study site. Blue dashed lines indicate mean values, and the grey shaded regions delineate standard error.</figcaption>
+</figure>
+</div>
+<p>In contrast to <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub>,</em> <em>g<sub>s,&nbsp;total</sub></em> did not significantly change over the course of time or development. Figure 5A demonstrates that there was no relationship between week and <em>g<sub>s,&nbsp;total</sub></em>at Mount Diablo across the observation period (mean <em>g<sub>s,&nbsp;total</sub></em> = 8.26 ± 5.01 mmol m<sup>-2</sup> s<sup>-1</sup>). Likewise, <em>g<sub>s,&nbsp;total</sub></em> did not vary significantly across development in greenhouse plants (Figure 5B, mean <em>g<sub>s,&nbsp;total</sub></em> = 6.12 ± 4.69 mmol m<sup>-2</sup> s<sup>-1</sup>). Furthermore, mean <em>g<sub>s,&nbsp;total</sub></em> in <em>E. californica</em> flowers at Mount Diablo was unresponsive to mean midday VPD and air temperature (Figure 6).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/gs_climate.png" class="img-fluid figure-img" alt="Two scatterplots showing total petal surface conductance on the y-axes and mean midday VPD and mean midday air temperature on the x-axes."></p>
+<figcaption>Total petal surface conductance was not significantly related to (A) mean midday vapor pressure deficit or (B) air temperature at Mount Diablo. Blue dashed lines indicate mean values, and the grey shaded regions delineate standard error.</figcaption>
+</figure>
+</div>
+<p>When we modeled whole flower midday water use, the combination of increasing VPD, decreasing <em>A<sub>petal</sub></em>, and stable <em>g<sub>s,&nbsp;total</sub></em>meant that <em>E<sub>flower</sub></em> remained relatively steady across the seasons at Mount Diablo (Figure 7A; <em>E<sub>flower</sub></em> = -1.50 × 10<sup>-5</sup><em>t</em> + 6.78 × 10<sup>-4</sup>, <em>r<sup>2</sup></em> = 0.03, <em>p</em> = 0.019). <em>E<sub>flower</sub></em> was weakly but positively related to VPD (Figure 7B; <em>E<sub>flower</sub></em> = 8.15 × 10<sup>-5</sup>VPD<sub>midday</sub> + 2.22 × 10<sup>-4</sup>, <em>r<sup>2</sup></em> = 0.09, <em>p</em> &lt; 0.0001). <em>E<sub>flower</sub></em> was positively related to <em>A<sub>petal</sub></em>, but this relationship was also weak (Figure 7C; <em>E<sub>flower</sub></em> = 4.15 × 10<sup>-5</sup><em>A<sub>petal</sub></em> + 3.08 × 10<sup>-4</sup>, <em>r<sup>2</sup></em> = 0.13, <em>p</em> &lt; 0.0001). A multiple linear regression with <em>A<sub>petal</sub></em>and VPD<sub>midday</sub> as predictors for <em>E<sub>flower</sub></em> was the best fitting model (<em>E<sub>flower</sub></em> = 7.57 × 10<sup>-5</sup><em>A<sub>petal</sub></em> + 1.68 × 10<sup>-4</sup>VPD<sub>midday</sub> - 4.52 × 10<sup>-4</sup>, <em>r<sup>2</sup></em> = 0.42, <em>p</em> &lt; 0.0001).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/waterloss_scatter.png" class="img-fluid figure-img" alt="Three scatterplots showing whole flower midday water loss on the y-axes and calendar date, mean midday VPD, and petal area on the x-axes."></p>
+<figcaption>Decreasing petal size may have helped stabilize whole flower water loss across the blooming period. (A) Midday flower water use correlated very weakly with time. Water maintenance costs were weakly associated with both (B) vapor pressure deficit and (C) petal size.</figcaption>
+</figure>
+</div>
+</section>
+<section id="whole-plant-flower-production-and-petal-scaling-relationships" class="level2">
+<h2 class="anchored" data-anchor-id="whole-plant-flower-production-and-petal-scaling-relationships">Whole plant flower production and petal scaling relationships</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/flowercount_scatter.png" class="img-fluid figure-img" alt="A scatterplot showing total number of flowers on the y-axis and plant radius in centimeters on the x-axis."></p>
+<figcaption>Larger <em>E. californica</em> plants tended to produce more flowers. The larger plants may be older individuals with greater biomass, as this population of California poppies likely contained perennials (Cook 1962).</figcaption>
+</figure>
+</div>
+<p>According to flower count surveys, peak flowering at Mount Diablo was observed on April 8 (Supplemental Figure S2). The flagged plants bloomed seldomly in the months of May and June. Plant radius positively related with the total number of flowers produced by each individual by April 22(Figure 8, log<sub>10</sub><em>y</em> = 1.74 ∙ log<sub>10</sub><em>x</em> - 0.96, <em>r<sup>2</sup></em> = 0.64, <em>p</em> &lt; 0.0001).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/area_absolute_water.png" class="img-fluid figure-img" alt="A scatterplot showing petal area on the y-axis and absolute petal water content on the x-axis. Dark blue triangles overlay the light blue circles."></p>
+<figcaption>Scaling relationship between absolute petal water content and projected surface area. There was a diminishing return on water investment in petal size. Only Mount Diablo data (circles) were used for the modeled relationship, but greenhouse petals (triangles) were overlayed for comparison.</figcaption>
+</figure>
+</div>
+<p><em>A<sub>petal</sub></em> at Mount Diablo was strongly predicted by <em>W<sub>absolute</sub></em> in a positive relationship (Figure 9, log<sub>10</sub><em>A<sub>petal</sub></em> = 0.8 ∙ log<sub>10</sub><em>W<sub>absolute</sub></em> - 0.55, <em>r<sup>2</sup></em> = 0.99, <em>p</em> &lt; 0.0001). Likewise, there was a significant, non-isometric relationship between <em>W<sub>mass</sub></em> and <em>A<sub>petal</sub></em><sub>,</sub> explained by a positive slope (Figure 10, log<sub>10</sub><em>W<sub>mass</sub></em> = 0.22 ∙ log<sub>10</sub><em>A<sub>petal</sub></em> + 0.66, <em>r<sup>2</sup></em> = 0.67, <em>p</em> &lt; 0.0001). Data from greenhouse petals were not used in the regression analysis, but they were included in the figures for the purpose of comparison.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/water_mass_area.png" class="img-fluid figure-img" alt="A scatterplot showing water content per dry mass on the y-axis and petal area on the x-axis. Dark blue triangles overlay the light blue circles."></p>
+<figcaption>The ratio of water to dry mass was greatly decreased in smaller petals, implying they were structurally distinct in terms of cell size or cell wall thickness. Due to non-independence from maternal effects, only Mount Diablo data (circles) were used for the modeled relationship. However, greenhouse petals (triangles) were overlayed for comparison.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="discussion" class="level1">
+<h1>Discussion</h1>
+<p>It is now well recognized that decreasing water availability can have significant impacts on floral traits involved with pollinator attraction, such as petal size (Galen 1999; Kuppler and Kotowska 2021; Powers <em>et al.</em> 2022). One reason for this is that flowers require a significant water investment due to their relatively high water content per unit dry mass as compared to leaves (Roddy <em>et al.</em> 2023). The water cost of constructing and maintaining flowers is expected to vary greatly for plants with a long bloom period that span distinct wet and dry periods, like <em>Eschscholzia californica</em> (Teixido and Valladares 2014; Greenhouse <em>et al.</em> 2012). Here we show that changes in floral water cost over a 4-month bloom period for <em>E. californica</em> are influenced by a combination of ontogeny and phenotypic plasticity.</p>
+<section id="ontogenetic-shifts-in-the-water-cost-of-flowering" class="level2">
+<h2 class="anchored" data-anchor-id="ontogenetic-shifts-in-the-water-cost-of-flowering">Ontogenetic shifts in the water cost of flowering</h2>
+<p>We tested for ontogenetic changes in the construction and maintenance cost of flowering by growing <em>E. californica</em> from seed under stable environmental conditions that imitated the springtime conditions of the parent population from Mount Diablo (Figure 2). Over an 18-week period the absolute water content of flower petals (<em>W<sub>absolute</sub></em>) decreased by 39%, primarily driven by a 33% decrease in <em>A<sub>petal</sub></em>. Greenhouse petals decreased from an average 10.2 cm<sup>2</sup> and 83.9 mg of water to 6.8 cm<sup>2</sup> and 51 mg (Figure 3B and 3D). Although a small decrease was observed in <em>A<sub>petal</sub></em>, we observed no change in petal <em>g<sub>s</sub></em> over the 18-week period of development (Figure 5B). Taken together, it seems ontogeny influenced the water cost of flowering by changing <em>A<sub>petal</sub></em>, but there were apparently no developmental changes in petal <em>g<sub>s</sub></em>.</p>
+</section>
+<section id="phenotypic-plasticity-in-the-water-cost-of-flowering" class="level2">
+<h2 class="anchored" data-anchor-id="phenotypic-plasticity-in-the-water-cost-of-flowering">Phenotypic plasticity in the water cost of flowering</h2>
+<p><em>A<sub>petal</sub></em> in wild plants decreased 73% over the monitored 18-week period at Mount Diablo, and <em>W<sub>absolute</sub></em> at the field site reduced by 81% (Figure 3A, 3C). Wild flowers produced at the beginning of the bloom period were similar in size to those made by greenhouse plants (10.2 cm<sup>2</sup> and 91.4 mg of water), but in the final weeks <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> at Mount Diablo decreased to 2.7 cm<sup>2</sup> and 17.2 mg. The divergence between wild and cultivated plants implies that investment in flowering responded to water availability, as seen in other species (Zhou <em>et al.</em> 2025; Lambrecht <em>et al.</em> 2017; Caruso 2006). While we did not measure soil water availability at our field site, weather records at Diablo Junction indicate that total precipitation was 9 mm in May and 0 mm in June of 2025 (NOAA 2026). The accompaniment of elevated vapor pressure deficit meant that the soil was likely severely water limited later in the bloom period of the wild plants. This would explain why flower size in wild Mount Diablo <em>E. californica</em> was responsive to climate, with both <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> negatively correlated with increasing atmospheric demand for water (Figure 4). Wild plants were exposed to a much drier environment than their counterparts grown in the greenhouse, and the lack of soil water likely drove a greater reduction in petal size.</p>
+<p>Shrinking cell size could be the mechanism behind flower size plasticity in <em>E. californica.</em> The positive relationship between <em>W<sub>mass</sub></em> and <em>A<sub>petal</sub></em> demonstrates that petal anatomy was changing alongside size (Figure 10). The reduction in the proportion of water to dry mass implies a decreased fraction of symplastic volume compared to apoplast volume in small petals. This could be achieved by either increased cell wall thickness or decreased cell size. Research on grass leaves has shown that symplastic volume scaled positively with water content per fresh mass (<span class="math inline">\frac{fresh mass - dry mass}{freshmass}</span> = <span class="math inline">\frac{W\scriptstyle mass}{W\scriptstyle mass + 1}</span>), providing support for cell size as likely responsible for changes in petal size (Garnier and Laurent 1994). Galen <em>et al.</em> (1999) suggested that cell size is functionally related to corolla size in <em>Polemonium viscosum</em> flowers, and that most change in flower size across development involves hydraulic cell expansion. Decreasing cell size can also occur with increasing cell wall thickness, which is advantageous when water becomes limiting to help maintain biomechanical structure at lower water potentials (Cutler <em>et al.</em> 1977). We hypothesize that changing cell size underlies changing <em>E. californica</em> petal composition, but microscopic imaging is required to confirm this claim.</p>
+<section id="the-interaction-of-petal-size-and-floral-water-use" class="level3">
+<h3 class="anchored" data-anchor-id="the-interaction-of-petal-size-and-floral-water-use">The interaction of petal size and floral water use</h3>
+<p><em>Eschscholzia californica</em> was capable of regulating the total water allocation to flowering by changing flower size but not through changes in petal surface conductance (Figure 5 and Figure 6). This is likely due to the fact that California poppies lack stomata on these particular organs (Becker <em>et al.</em> 2005). When evaluating the influence of petal size on the water construction cost of producing flowers, we observed strong non-isometric scaling between <em>A<sub>petal</sub></em> and <em>W<sub>absolute</sub></em> (Figure 9, coefficient = 0.8), suggesting a diminishing return on flower size with increased water allocation toward flowering. In other words, building a few large flowers results in a greater water construction cost than multiple small blossoms. For example, for a total floral display of 80 cm<sup>2</sup>, two 40 cm<sup>2</sup> flowers would cost ~ 650 mg whereas four 20 cm<sup>2</sup> flowers would cost ~ 576 mg of water (Figure 9, see equation). In contrast, because there was no relationship between <em>A<sub>petal</sub></em> and <em>g<sub>s</sub></em>, the influence of petal size on the maintenance cost of flowering is ultimately dependent upon the total number of flowers produced and VPD (Figure 7C).</p>
+<p>Previous research has shown strong variation in petal <em>g<sub>s</sub></em> in response to changes in air temperature (Aun <em>et al.</em> 2024). However, our field observations showed no impact of air temperature on <em>g<sub>s</sub></em> over the bloom period. Since there was no relationship between air temperature and <em>g<sub>s</sub></em>, it is likely that the observed wild poppies did not experience temperatures high enough to induce changes in cuticle structure that lead to increases in <em>g<sub>s</sub></em> (Aun <em>et al.</em> 2024). The warmest field day at Mount Diablo was June 25, 2025. According to sensor data, the maximum air temperature was 39.5 °C, just shy of the range of temperatures known to trigger the aforementioned phase transition in the cuticle membrane for some plant species (Schreiber and Schönherr 1990). A reduction in petal surface conductance due to thickening the cuticle is unlikely for this species, as <em>g<sub>s</sub></em> is important for the cooling of epidermal tissue by latent heat exchange. Such a response to increasing temperatures could run the risk of overheating (Nobel 2009).</p>
+<p>While water loss from flower petals slightly decreased over time at Mount Diablo (Figure 7), the relationship between <em>E<sub>flower</sub></em> and sampling week was weakly correlated because floral water use was ultimately controlled by both size and vapor pressure deficit (MLR, <em>r</em><sup>2</sup> = 0.42). Reducing flower size served to stabilize the water maintenance cost of floral display over the bloom period, as shown by the low correlation between water loss and size (Figure 7C, <em>r</em><sup>2</sup> = 0.13). At greater VPD, the largest flowers seen in early spring were likely vulnerable to losing more water to the atmosphere than smaller flowers. However, we did not observe this phenomenon because daytime VPD during the month of March was below 3 kPa (Figure 2).</p>
+</section>
+<section id="insight-into-whole-plant-reproductive-water-investment" class="level3">
+<h3 class="anchored" data-anchor-id="insight-into-whole-plant-reproductive-water-investment">Insight into whole plant reproductive water investment</h3>
+<p>Flower count data indicate that poppy plants tended to produce a greater number of flowers in late March and early April, when they were also apt to produce large petals (Supplemental Figure S2). Pollinators may be attracted to large floral displays, which would suggest a mechanism for high flower production with bigger petals when water was plentiful (Rowe <em>et al.</em> 2020; Gervasi and Schiestl 2017; Teixido <em>et al.</em> 2016). Bigger plants produced disproportionately more flowers by April 22nd (Figure 8, slope = 1.74). These large plants could be older individuals that were recruited during prior growing seasons, as the <em>E. californica</em> population at Mount Diablo likely contains perennials (Cook 1962).</p>
+</section>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p><em>Eschscholzia californica</em> is an emerging model organism with the potential for synthesizing scientific inquiry across different fields in plant biology (Becker <em>et al.</em> 2023). Here, we use California poppies to observe how plant development intersects with physiology in a natural environment. We support our interpretations with comparisons to plants grown in a greenhouse. Our integration here yielded insights into how <em>E. californica</em> reproduction responds to a seasonally drying climate. Results like these provide relevant context for conservation biologists when planning for future drying trends caused by climate change.</p>
+<p>During March 2026, a year after we completed this field study, the Diablo Junction weather station recorded just 1 mm total precipitation, down from the period of record average of 86 mm. (NOAA 2026; Western Regional Climate Center 2026). Air temperatures were also elevated to a monthly average maximum of 23 °C, a 53% increase from previous years. Our research suggests that California poppies may be capable of responding to unseasonal droughts of this sort by producing smaller flowers. While reduction in flower size may acommpany a reduction in fitness (Supplemental Figure S2, Ryan and Cleland 2021), recent advances suggest non-adaptive plasticity could assist long-term species survival and enhance directional evolutionary change (Ghalambor <em>et al.</em> 2015; Velotta <em>et al.</em> 2018; Leonard and Lancaster 2020; Campbell-Staton <em>et al.</em> 2021). Our results show that flowers produced later in the season were smaller, contained less water, and lost less water to the atmosphere than large flowers. In increasingly water-limited landscapes, reducing floral water cost could affect whether plants maintain reproduction through drought or abandon flowering altogether.</p>
+</section>
+<section id="references" class="level1">
+<h1>References</h1>
+<p><strong>An Y-D, Roddy AB, Zhang T-H, Jiang G-F</strong>. <strong>2023</strong>. Hydraulic differences between flowers and leaves are driven primarily by pressure-volume traits and water loss. <em>Frontiers in Plant Science</em> <strong>14</strong>: 1130724.</p>
+<p><strong>Anic V, Henríquez CA, Abades SR, Bustamante RO</strong>. <strong>2015</strong>. Number of conspecifics and reproduction in the invasive plant <em>Eschscholzia californica</em> (Papaveraceae): is there a pollinator‐mediated Allee effect? <em>Plant Biology</em> <strong>17</strong>: 720–727.</p>
+<p><strong>Ashman T-L, Schoen DJ</strong>. <strong>1994</strong>. How long should flowers live? <em>Nature</em> <strong>371</strong>: 788–791.</p>
+<p><strong>Aun MA, Farnese F, Loram‐Lourenço L, <em>et al.</em></strong> <strong>2024</strong>. Evidence of combined flower thermal and drought vulnerabilities portends reproductive failure under hotter‐drought conditions. <em>Plant, Cell &amp; Environment</em> <strong>47</strong>: 1971–1986.</p>
+<p><strong>Bates D, Mächler M, Bolker B, Walker S</strong>. <strong>2015</strong>. Fitting Linear Mixed-Effects Models Using lme4. <em>Journal of Statistical Software</em> <strong>67</strong>: 1–48.</p>
+<p><strong>Becker A, Gleissberg S, Smyth DR</strong>. <strong>2005</strong>. Floral and Vegetative Morphogenesis in California Poppy (<em>Eschscholzia californica</em> Cham.). <em>International Journal of Plant Sciences</em> <strong>166</strong>: 537–555.</p>
+<p><strong>Becker A, Yamada Y, Sato F</strong>. <strong>2023</strong>. California poppy (<em>Eschscholzia californica</em>), the Papaveraceae golden girl model organism for evodevo and specialized metabolism. <em>Frontiers in Plant Science</em> <strong>14</strong>: 1084358.</p>
+<p><strong>Bell G</strong>. <strong>1985</strong>. On the function of flowers. <em>Proceedings of the Royal Society of London. B. Biological Sciences</em> <strong>224</strong>: 223–265.</p>
+<p><strong>Bonser SP</strong>. <strong>2021</strong>. Misinterpreting the adaptive value of phenotypic plasticity in studies on plant adaptation to new and variable environments. <em>Plant Biology</em> <strong>23</strong>: 683–685.</p>
+<p><strong>Bourbia I, Carins‐Murphy MR, Gracie A, Brodribb TJ</strong>. <strong>2020</strong>. Xylem cavitation isolates leaky flowers during water stress in pyrethrum. <em>New Phytologist</em> <strong>227</strong>: 146–155.</p>
+<p><strong>Buck AL</strong>. <strong>1981</strong>. New Equations for Computing Vapor Pressure and Enhancement Factor. <em>Journal of Applied Meteorology and Climatology</em> <strong>20</strong>: 1527–1532.</p>
+<p><strong>Bustamante RO, Durán AP, Peña-Gómez FT, Véliz D</strong>. <strong>2017</strong>. Genetic and phenotypic variation, dispersal limitation and reproductive success in the invasive herb <em>Eschscholzia californica</em> along an elevation gradient in central Chile. <em>Plant Ecology &amp; Diversity</em> <strong>10</strong>: 419–429.</p>
+<p><strong>Campbell-Staton SC, Velotta JP, Winchell KM</strong>. <strong>2021</strong>. Selection on adaptive and maladaptive gene expression plasticity during thermal adaptation to urban heat islands. <em>Nature Communications</em> <strong>12</strong>: 6195.</p>
+<p><strong>Carins-Murphy MR, Cochard H, Deans RM, Gracie AJ, Brodribb TJ</strong>. <strong>2023</strong>. Combined heat and water stress leads to local xylem failure and tissue damage in pyrethrum flowers. <em>Plant Physiology</em> <strong>193</strong>: 356–370.</p>
+<p><strong>Caruso CM</strong>. <strong>2006</strong>. Plasticity of inflorescence traits in <em>Lobelia siphilitica</em> (Lobeliaceae) in response to soil water availability. <em>American Journal of Botany</em> <strong>93</strong>: 531–538.</p>
+<p><strong>Caruso CM, Eisen KE, Martin RA, Sletvold N</strong>. <strong>2019</strong>. A meta‐analysis of the agents of selection on floral traits. <em>Evolution</em> <strong>73</strong>: 4–14.</p>
+<p><strong>Cook SA</strong>. <strong>1962</strong>. Genetic System, Variation, and Adaptation in <em>Eschscholzia californica</em>. <em>Evolution</em> <strong>16</strong>: 278–299.</p>
+<p><strong>Cutler JM, Rains DW, Loomis RS</strong>. <strong>1977</strong>. The Importance of Cell Size in the Water Relations of Plants. <em>Physiologia Plantarum</em> <strong>40</strong>: 255–260.</p>
+<p><strong>Dai A</strong>. <strong>2013</strong>. Increasing drought under global warming in observations and models. <em>Nature Climate Change</em> <strong>3</strong>: 52–58.</p>
+<p><strong>Diggle PK</strong>. <strong>1997</strong>. Ontogenetic Contingency and Floral Morphology: The Effects of Architecture and Resource Limitation. <em>International Journal of Plant Sciences</em> <strong>158</strong>: S99–S107.</p>
+<p><strong>Feild TS, Chatelet DS, Brodribb TJ</strong>. <strong>2009</strong>. Giant flowers of Southern magnolia are hydrated by the xylem. <em>Plant Physiology</em> <strong>150</strong>: 1587–1597.</p>
+<p><strong>Galen C</strong>. <strong>1999</strong>. Why Do Flowers Vary? <em>BioScience</em> <strong>49</strong>: 631–640.</p>
+<p><strong>Galen C, Sherry RA, Carroll AB</strong>. <strong>1999</strong>. Are flowers physiological sinks or faucets? Costs and correlates of water use by flowers of <em>Polemonium viscosum</em>. <em>Oecologia</em> <strong>118</strong>: 461–470.</p>
+<p><strong>Gallagher MK, Campbell DR</strong>. <strong>2017</strong>. Shifts in water availability mediate plant–pollinator interactions. <em>New Phytologist</em> <strong>215</strong>: 792–802.</p>
+<p><strong>Garnier E, Laurent G</strong>. <strong>1994</strong>. Leaf anatomy, specific mass and water content in congeneric annual and perennial grass species. <em>New Phytologist</em> <strong>128</strong>: 725–736.</p>
+<p><strong>Gervasi DDL, Schiestl FP</strong>. <strong>2017</strong>. Real-time divergent evolution in plants driven by pollinators. <em>Nature Communications</em> <strong>8</strong>: 14691.</p>
+<p><strong>Ghalambor CK, Hoke KL, Ruell EW, Fischer EK, Reznick DN, Hughes KA</strong>. <strong>2015</strong>. Non-adaptive plasticity potentiates rapid adaptive evolution of gene expression in nature. <em>Nature</em> <strong>525</strong>: 372–375.</p>
+<p><strong>Greenhouse J, Markos S, Moe RL, Simono S, Wetherwax M, Vorobik LA</strong>. <strong>2012</strong>. <em>The Digital Jepson Manual: Vascular Plants of California, Second Edition, Thoroughly Revised and Expanded</em>. University of California Press.</p>
+<p><strong>Höfer RJ, Lindner T, Ayasse M, Kuppler J</strong>. <strong>2023</strong>. Reduced seed set under water deficit is driven mainly by reduced flower numbers and not by changes in flower visitations and pollination. <em>Functional Ecology</em> <strong>37</strong>: 461–471.</p>
+<p><strong>Hutton D, Game JC, Ludwig KF, Jauregui-Lazo J, Tan BC</strong>. <strong>2021</strong>. A Bryophyte Inventory of Mount Diablo, Contra Costa County, California. <em>Madroño</em> <strong>68</strong>.</p>
+<p><strong>IPCC</strong>. <strong>2023</strong>. Summary for policymakers. In: Climate change 2023: synthesis report. A report of the intergovernmental panel on climate change. Contribution of working groups I, II and III to the sixth assessment report of the intergovernmental panel on climate change [Core Writing Team].</p>
+<p><strong>Kuppler J, Kotowska MM</strong>. <strong>2021</strong>. A meta‐analysis of responses in floral traits and flower–visitor interactions to water deficit. <em>Global Change Biology</em> <strong>27</strong>: 3095–3108.</p>
+<p><strong>Kuznetsova A, Brockhoff PB, Christensen RHB</strong>. <strong>2017</strong>. lmerTest Package: Tests in Linear Mixed Effects Models. <em>Journal of Statistical Software</em> <strong>82</strong>: 1–26.</p>
+<p><strong>Lambrecht SC</strong>. <strong>2013</strong>. Floral Water Costs and Size Variation in the Highly Selfing <em>Leptosiphon bicolor</em> (Polemoniaceae). <em>International Journal of Plant Sciences</em> <strong>174</strong>: 74–84.</p>
+<p><strong>Lambrecht SC, Dawson TE</strong>. <strong>2007</strong>. Correlated variation of floral and leaf traits along a moisture availability gradient. <em>Oecologia</em> <strong>151</strong>: 574–583.</p>
+<p><strong>Lambrecht SC, Morrow A, Hussey R</strong>. <strong>2017</strong>. Variation in and adaptive plasticity of flower size and drought-coping traits. <em>Plant Ecology</em> <strong>218</strong>: 647–660.</p>
+<p><strong>Leger EA, Rice KJ</strong>. <strong>2003</strong>. Invasive California poppies (<em>Eschscholzia californica</em> Cham.) grow larger than native individuals under reduced competition. <em>Ecology Letters</em> <strong>6</strong>: 257–264.</p>
+<p><strong>Lenth R</strong>. <strong>2023</strong>. emmeans: Estimated Marginal Means, aka Least-Squares Means. <em>R package version 1.8.5</em>.</p>
+<p><strong>Leonard AM, Lancaster LT</strong>. <strong>2020</strong>. Maladaptive plasticity facilitates evolution of thermal tolerance during an experimental range shift. <em>BMC Evolutionary Biology</em> <strong>20</strong>: 47.</p>
+<p><strong>LI-COR</strong>. <strong>2026</strong>. <em>LI-600 | Operating Instructions</em>. https://www.licor.com/support/LI-600/manuals.html. 6 May 2026.</p>
+<p><strong>Lipayeva L</strong>. <strong>1989</strong>. On the anatomy of petals in angiosperms. <em>Botanicheskii Zhurnal</em> <strong>74</strong>: 826–830.</p>
+<p><strong>Matesanz S, Gianoli E, Valladares F</strong>. <strong>2010</strong>. Global change and the evolution of phenotypic plasticity in plants. <em>Annals of the New York Academy of Sciences</em> <strong>1206</strong>: 35–55.</p>
+<p><strong>Montalvo AM, Feist-Alvey LJ, Koehler CE</strong>. <strong>2002</strong>. The effect of fire and cold treatments on seed germination of annual and perennial populations of <em>Eschscholzia californica</em> (Papaveraceae) in Southern California. <em>Madroño</em> <strong>49</strong>: 207–227.</p>
+<p><strong>Muhammad LN</strong>. <strong>2023</strong>. Guidelines for repeated measures statistical analysis approaches with basic science research considerations. <em>The Journal of Clinical Investigation</em> <strong>133</strong>: e171058.</p>
+<p><strong>Nattero J, Cocucci AA, Medel R</strong>. <strong>2010</strong>. Pollinator‐mediated selection in a specialized pollination system: matches and mismatches across populations. <em>Journal of Evolutionary Biology</em> <strong>23</strong>: 1957–1968.</p>
+<p><strong>NOAA</strong>. <strong>2026</strong>. <em>Daily Summaries Station Details: Mount Diablo Junction</em>. https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USC00045915/detail. 30 Mar.&nbsp;2026.</p>
+<p><strong>Nobel PS</strong>. <strong>2009</strong>. <em>Physicochemical and Environmental Plant Physiology</em>. Academic Press.</p>
+<p><strong>Paiva DC, Roddy AB</strong>. <strong>2024</strong>. Flower longevity and size are coordinated with ecophysiological traits in a tropical montane ecosystem. <em>New Phytologist</em> <strong>244</strong>: 344–350.</p>
+<p><strong>Pearson KD, Love NLR, Ramirez-Parada T, Mazer SJ, Yost JM</strong>. <strong>2021</strong>. Phenological trends in the California poppy (<em>Eschscholzia californica</em>): digitized herbarium specimens reveal intraspecific variation in the sensitivity of flowering date to climate change. <em>Madroño</em> <strong>68</strong>: 343–359.</p>
+<p><strong>Powers JM, Briggs HM, Dickson RG, Li X, Campbell DR</strong>. <strong>2022</strong>. Earlier snow melt and reduced summer precipitation alter floral traits important to pollination. <em>Global Change Biology</em> <strong>28</strong>: 323–339.</p>
+<p><strong>PRISM Group</strong>. <strong>2025</strong>. <em>PRISM Group at Oregon State University</em>. https://prism.oregonstate.edu/explorer/. 31 Mar.&nbsp;2026.</p>
+<p><strong>R Core Team</strong>. <strong>2024</strong>. <em>R: A language and environment for statistical computing.</em> https://www.r-project.org/. 29 Apr.&nbsp;2026.</p>
+<p><strong>Roddy AB, Brodersen CR, Dawson TE</strong>. <strong>2016</strong>. Hydraulic conductance and the maintenance of water balance in flowers. <em>Plant, Cell &amp; Environment</em> <strong>39</strong>: 2123–2132.</p>
+<p><strong>Roddy AB, Guilliams CM, Fine PVA, Mambelli S, Dawson TE, Simonin KA</strong>. <strong>2023</strong>. Flowers are leakier than leaves but cheaper to build. <em>New Phytologist</em> <strong>239</strong>: 2076–2082.</p>
+<p><strong>Roddy AB, Jiang G, Cao K, Simonin KA, Brodersen CR</strong>. <strong>2019</strong>. Hydraulic traits are more diverse in flowers than in leaves. <em>New Phytologist</em> <strong>223</strong>: 193–203.</p>
+<p><strong>Roddy AB, Martínez‐Perez C, Teixido AL, <em>et al.</em></strong> <strong>2021</strong>. Towards the flower economics spectrum. <em>New Phytologist</em> <strong>229</strong>: 665–672.</p>
+<p><strong>Roddy AB, Simonin KA, McCulloh KA, Brodersen CR, Dawson TE</strong>. <strong>2018</strong>. Water relations of <em>Calycanthus</em> flowers: Hydraulic conductance, capacitance, and embolism resistance. <em>Plant, Cell &amp; Environment</em> <strong>41</strong>: 2250–2262.</p>
+<p><strong>Rowe L, Gibson D, Bahlai CA, Gibbs J, Landis DA, Isaacs R</strong>. <strong>2020</strong>. Flower traits associated with the visitation patterns of bees. <em>Oecologia</em> <strong>193</strong>: 511–522.</p>
+<p><strong>Ryan EM, Cleland EE</strong>. <strong>2021</strong>. Clinal variation in phenological traits and fitness responses to drought across the native range of California poppy. <em>Climate Change Ecology</em> <strong>2</strong>: 100021.</p>
+<p><strong>Schemske DW, Bradshaw HD</strong>. <strong>1999</strong>. Pollinator preference and the evolution of floral traits in monkeyflowers (<em>Mimulus</em>). <em>Proceedings of the National Academy of Sciences</em> <strong>96</strong>: 11910–11915.</p>
+<p><strong>Schneider CA, Rasband WS, Eliceiri KW</strong>. <strong>2012</strong>. NIH Image to ImageJ: 25 years of image analysis. <em>Nature Methods</em> <strong>9</strong>: 671–675.</p>
+<p><strong>Schreiber L, Schönherr J</strong>. <strong>1990</strong>. Phase transitions and thermal expansion coefficients of plant cuticles: The effects of temperature on structure and function. <em>Planta</em> <strong>182</strong>: 186–193.</p>
+<p><strong>Sharma R, Nanda KK</strong>. <strong>1976</strong>. Effect of photoperiod on growth and development of <em>Eschscholtzia californica</em> Cham. <em>Indian Journal of Plant Physiology</em> <strong>19</strong>: 202–206.</p>
+<p><strong>Strauss SY, Whittall JB</strong>. <strong>2006</strong>. Non-pollinator agents of selection on floral traits In: <em>Ecology and Evolution of Flowers</em>. Oxford University Press, 120–138.</p>
+<p><strong>Teixido AL, Barrio M, Valladares F</strong>. <strong>2016</strong>. Size Matters: Understanding the Conflict Faced by Large Flowers in Mediterranean Environments. <em>The Botanical Review</em> <strong>82</strong>: 204–228.</p>
+<p><strong>Teixido AL, Valladares F</strong>. <strong>2014</strong>. Disproportionate carbon and water maintenance costs of large corollas in hot Mediterranean ecosystems. <em>Perspectives in Plant Ecology, Evolution and Systematics</em> <strong>16</strong>: 83–92.</p>
+<p><strong>Velotta JP, Ivy CM, Wolf CJ, Scott GR, Cheviron ZA</strong>. <strong>2018</strong>. Maladaptive phenotypic plasticity in cardiac muscle growth is suppressed in high‐altitude deer mice. <em>Evolution</em> <strong>72</strong>: 2712–2727.</p>
+<p><strong>Weiner J</strong>. <strong>2004</strong>. Allocation, plasticity and allometry in plants. <em>Perspectives in Plant Ecology, Evolution and Systematics</em> <strong>6</strong>: 207–215.</p>
+<p><strong>Western Regional Climate Center</strong>. <strong>2026</strong>. <em>Mount Diablo Junction Climate Summary</em>. https://wrcc.dri.edu/cgi-bin/cliMAIN.pl?ca5915. 30 Mar.&nbsp;2026.</p>
+<p><strong>Zhang F-P, Brodribb TJ</strong>. <strong>2017</strong>. Are flowers vulnerable to xylem cavitation during drought? <em>Proceedings of the Royal Society B: Biological Sciences</em> <strong>284</strong>: 20162642.</p>
+<p><strong>Zhang F, Carins Murphy MR, Cardoso AA, Jordan GJ, Brodribb TJ</strong>. <strong>2018</strong>. Similar geometric rules govern the distribution of veins and stomata in petals, sepals and leaves. <em>New Phytologist</em> <strong>219</strong>: 1224–1234.</p>
+<p><strong>Zhou Y, Meng Y-Y, Long Q-Y, Li J-W</strong>. <strong>2025</strong>. Plasticity in <em>Dendrobium</em> floral structure and physiological response under different drought stress levels. <em>Scientia Horticulturae</em> <strong>346</strong>: 114170.</p>
+</section>
+<section id="supplementary-figures-and-tables" class="level1">
+<h1>Supplementary Figures and Tables</h1>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/prism_model.png" class="img-fluid figure-img" alt="Two scatterplots with sensor VPD and sensor air temperature on the y-axes and PRISM VPD and air temperature on the x-axes."></p>
+<figcaption>PRISM regressions for daily maximum, mean, and minimum air temperature and vapor pressure deficit (VPD). Linear models were constrained to measurements made before April 24th, 2025, as models made with later data tended to overestimate temperature and VPD values in early Spring. Daily minimum VPD was the exception, because a significant relationship was only found using all available measurements.</figcaption>
+</figure>
+</div>
+<table class="caption-top table">
+<caption>Linear regressions used to replace missing sensor data at Mount Diablo.</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Predicted metric</th>
+<th>Linear model</th>
+<th><strong><em>p</em>-value</strong></th>
+<th><strong><em>r</em></strong><sup><strong>2</strong></sup></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Daily maximum VPD</td>
+<td><em>y</em>=2.14<em>x</em> – 0.216</td>
+<td>&lt; 0.0001</td>
+<td>0.89</td>
+</tr>
+<tr class="even">
+<td>Daily mean VPD</td>
+<td><em>y</em>=1.34<em>x</em> – 0.079</td>
+<td>&lt; 0.0001</td>
+<td>0.92</td>
+</tr>
+<tr class="odd">
+<td>Daily minimum VPD</td>
+<td><em>y</em>=0.655<em>x</em> + 0.0512</td>
+<td>&lt; 0.0001</td>
+<td>0.62</td>
+</tr>
+<tr class="even">
+<td>Daily maximum air temperature</td>
+<td><em>y</em>=1.42<em>x</em> + 0.372</td>
+<td>&lt; 0.0001</td>
+<td>0.88</td>
+</tr>
+<tr class="odd">
+<td>Daily mean air temperature</td>
+<td><em>y</em>=1.10<em>x</em> + 0.0896</td>
+<td>&lt; 0.0001</td>
+<td>0.96</td>
+</tr>
+<tr class="even">
+<td>Daily minimum air temperature</td>
+<td><em>y</em>=0.678<em>x</em> + 0.440</td>
+<td>&lt; 0.0001</td>
+<td>0.63</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/flowercount_columns.png" class="img-fluid figure-img" alt="A bar graph with number of flowers on the y-axis and calendar date on the x-axis. "></p>
+<figcaption>A bar column graph of total weekly flower counts across 20 flagged <em>E. californica</em> plants at the Mount Diablo field site. Each shade of orange corresponds to a unique plant.</figcaption>
+</figure>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
