@@ -1,11 +1,45 @@
-# *Shrinking flowers* data repository
+# CApoppy-seasonal-physiology
 
-## Summary
+## Overview
 
-This repository is the product of a [master's thesis](https://snolan419.github.io/eschscholzia-flowers/shrinking-flowers.html) investigating flower physiology in *Eschscholzia californica* at Mount Diablo State Park.
-Datasets for petal measurements, site microclimate, porometer readings, scanned petal images, and flower counts are located in the data folder alongside python preprocessing scripts.
-R scripts are in the analysis folder.
-Graphs are output into the figures folder.
+This repository investigates seasonal variation in floral morphology and physiology within a single population of California poppy (*Eschscholzia californica*) at Mount Diablo State Park, California.
+
+The project builds on the research and datasets developed by **Shea Nolan** as part of a [master's thesis](https://snolan419.github.io/eschscholzia-flowers/shrinking-flowers.html). The original research includes measurements of petal morphology, flower physiology, site microclimate, and flowering patterns across the season.
+
+## Project origins and acknowledgment
+
+This repository was created from Shea Nolan's original GitHub repository, [snolan419/eschscholzia-flowers](https://github.com/snolan419/eschscholzia-flowers).
+
+The original repository contains petal measurements, site microclimate data, porometer readings, scanned petal images, flower counts, Python preprocessing scripts, and R analysis scripts. These materials provide the foundation for the present project.
+
+**Credit for the original study, data collection, and associated research materials belongs to Shea Nolan.**
+
+## Current project
+
+The purpose of this repository is to develop and document analyses of seasonal variation in California poppy floral traits, building on the original datasets and analyses.
+
+The repository will be developed to support reproducible data processing, statistical analyses, and visualization of seasonal patterns in floral morphology and physiology.
+
+As the project develops, this README will document modifications to the original datasets, analytical methods, and scripts, distinguishing the original research from subsequent analyses.
+
+## Data and code organization
+
+The repository initially retains the structure and materials of the original project:
+
+- `data/` — Original datasets and Python preprocessing scripts
+- `analysis/` — R scripts for statistical analyses
+- `figures/` — Generated figures
+
+Changes to the repository structure and analytical workflows will be documented as the project develops.
+
+## Original research
+
+Nolan, Shea. Master's thesis investigating flower physiology in *Eschscholzia californica* at Mount Diablo State Park.
+
+- [Original research and thesis](https://snolan419.github.io/eschscholzia-flowers/shrinking-flowers.html)
+- [Original GitHub repository](https://github.com/snolan419/eschscholzia-flowers)
+
+Please consult the original repository for information about the source datasets and original analytical methods.
 
 ## Languages
 
